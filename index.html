@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ASTRO EXPLORER: ภารกิจสำรวจโลกและอวกาศ V6 (Final)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --neon-primary: #f59e0b; /* Amber 500 */
+            --neon-secondary: #3b82f6; /* Blue 500 */
+            --neon-accent: #10b981; /* Green */
+            --neon-danger: #ef4444; /* Red */
+            --bg-dark: #050b14; /* Deep Space */
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: var(--bg-dark); 
+            color: #e2e8f0; 
+            font-family: 'Kanit', sans-serif; 
+            user-select: none; 
+            touch-action: none; 
+            width: 100vw;
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Modern mobile viewport */
+        }
+        .font-sci { font-family: 'Orbitron', sans-serif; } 
+
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
+        #bg-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        
+        #ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; 
+            display: flex; flex-direction: column; pointer-events: none; 
+            /* Safe Area Inset สำหรับมือถือที่มีจอบาก หรือ Home Indicator */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+        .interactive { pointer-events: auto; } 
+
+        /* Clamp Typography */
+        .title-clamp { font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1.2; }
+        .subtitle-clamp { font-size: clamp(1rem, 2vw, 1.5rem); }
+
+        /* Portrait Warning Overlay */
+        #portrait-warning {
+            display: none; position: fixed; inset: 0; z-index: 9999;
+            background: var(--bg-dark); flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; color: white; padding: 2rem;
+        }
+        @media screen and (orientation: portrait) {
+            #ui-layer { display: none !important; }
+            #portrait-warning { display: flex; }
+        }
+
+        /* Terminal Login */
+        .terminal-panel { background: linear-gradient(135deg, rgba(5, 11, 20, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border: 2px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 30px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.1); border-radius: 16px; position: relative; overflow: hidden; }
+        .terminal-panel::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px); background-size: 20px 20px; pointer-events: none; }
+        .cyber-input { background: rgba(0, 0, 0, 0.4); border: none; border-bottom: 2px solid rgba(59, 130, 246, 0.5); color: var(--neon-primary); font-family: 'Orbitron', sans-serif; letter-spacing: 2px; border-radius: 0; outline: none; transition: all 0.3s; text-transform: uppercase; }
+        .cyber-input::placeholder { color: rgba(148, 163, 184, 0.4); text-transform: none; font-family: 'Kanit', sans-serif; letter-spacing: normal;}
+        .cyber-input:focus { border-bottom-color: var(--neon-primary); box-shadow: 0 10px 15px -10px rgba(245, 158, 11, 0.5); background: rgba(245, 158, 11, 0.05); }
+
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--neon-primary); box-shadow: 0 0 10px var(--neon-primary), 0 0 20px var(--neon-primary); opacity: 0.5; animation: scan 3s linear infinite; pointer-events: none; }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        .typewriter { overflow: hidden; border-right: .15em solid var(--neon-primary); white-space: nowrap; margin: 0 auto; letter-spacing: .1em; animation: typing 2.5s steps(40, end), blink-caret .75s step-end infinite; }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--neon-primary); } }
+
+        .input-error { border-bottom-color: var(--neon-danger) !important; background: rgba(239, 68, 68, 0.1) !important; box-shadow: 0 10px 15px -10px rgba(239, 68, 68, 0.5) !important; }
+        .btn-error { animation: shake 0.4s; background: var(--neon-danger) !important; border-color: #f87171 !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5) !important; }
+        .btn-success { background: var(--neon-accent) !important; border-color: #34d399 !important; box-shadow: 0 0 20px rgba(16, 185, 129, 0.5) !important; pointer-events: none; }
+        .btn-loading { opacity: 0.8; pointer-events: none; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        /* Mission Card & Button Shimmer (Main Menu Upgrades) */
+        .mission-card { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .mission-card:hover { transform: translateY(-5px); border-color: var(--neon-secondary); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3), inset 0 0 15px rgba(59, 130, 246, 0.1); }
+        
+        .btn-shimmer { position: relative; overflow: hidden; }
+        .btn-shimmer::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg); animation: shimmer-sweep 4s infinite; }
+        @keyframes shimmer-sweep { 0%, 50% { left: -100%; } 70%, 100% { left: 200%; } }
+
+        /* Countdown Animations */
+        .countdown-pop { animation: pop-in 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 40% { transform: scale(1.2); opacity: 1; } 60% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .countdown-go { animation: pop-go 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes pop-go { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; text-shadow: 0 0 40px var(--neon-primary); } 100% { transform: scale(2); opacity: 0; } }
+
+        /* Game UI */
+        .circular-timer { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; z-index: 50; background: conic-gradient(var(--neon-secondary) var(--timer-pct, 100%), rgba(255,255,255,0.05) 0); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 10px rgba(0,0,0,0.5); border: 4px solid var(--bg-dark); transition: background 1s linear; }
+        .circular-timer::before { content: ""; position: absolute; inset: 4px; background: rgba(15, 23, 42, 0.95); border-radius: 50%; box-shadow: inset 0 0 10px rgba(59,130,246,0.2); }
+        .circular-timer-text { position: relative; z-index: 10; font-family: 'Orbitron', sans-serif; font-size: 1.75rem; font-weight: bold; color: white; }
+        .timer-warning { background: conic-gradient(var(--neon-danger) var(--timer-pct, 100%), rgba(255,255,255,0.1) 0); box-shadow: 0 0 20px rgba(239, 68, 68, 0.6); animation: pulse-red-timer 1s infinite; }
+        .timer-warning-text { color: var(--neon-danger); text-shadow: 0 0 10px rgba(239,68,68,0.8); }
+
+        #question-container { transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); background: rgba(15, 23, 42, 0.7); border-radius: 16px; margin-top: 30px; }
+        #question-container.success { background: rgba(16, 185, 129, 0.15); border-color: var(--neon-accent); border-style: solid; box-shadow: 0 0 40px rgba(16, 185, 129, 0.4); }
+        #question-container.error { background: rgba(239, 68, 68, 0.15); border-color: var(--neon-danger); border-style: solid; box-shadow: 0 0 40px rgba(239, 68, 68, 0.4); }
+
+        .choice-card-v2 { background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 4px solid var(--card-color); border-radius: 12px; color: #e2e8f0; transition: all 0.2s ease; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); touch-action: none; }
+        .choice-card-v2::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 0%, var(--card-color) 0%, transparent 60%); opacity: 0.1; transition: opacity 0.3s; pointer-events: none; }
+        .choice-card-v2.hovered, .choice-card-v2:hover { transform: translateY(-5px); border-color: var(--card-color); box-shadow: 0 15px 25px rgba(0,0,0,0.6), 0 0 20px var(--card-color); color: white; }
+        .choice-card-v2.hovered::before, .choice-card-v2:hover::before { opacity: 0.3; }
+        .choice-card-v2.grabbing { transform: scale(1.05); background: var(--card-color); z-index: 100; box-shadow: 0 0 40px var(--card-color); }
+        .choice-card-v2.grabbing * { color: #000 !important; text-shadow: none !important; }
+
+        .circle-num { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.25rem; color: white; background: var(--card-color); box-shadow: 0 0 15px var(--card-color); flex-shrink: 0; }
+        .track-line { position: absolute; top: 50%; left: 10%; width: 80%; height: 2px; background: linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent); box-shadow: 0 0 10px rgba(59,130,246,0.5); z-index: 1; pointer-events: none; }
+        .jump-ripple { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 0; height: 0; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%); animation: ripple-anim 0.6s ease-out; pointer-events: none; z-index: 10; }
+        @keyframes ripple-anim { 0% { width: 0px; height: 0px; opacity: 1; } 100% { width: 500px; height: 500px; opacity: 0; } }
+
+        #camera-preview { position: absolute; top: 20px; right: 20px; width: 160px; height: 120px; border: 2px solid var(--neon-secondary); border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); z-index: 1000; transform: scaleX(-1); cursor: grab; pointer-events: auto; background: #000; }
+        #camera-preview:active { cursor: grabbing; box-shadow: 0 0 25px rgba(59, 130, 246, 0.6); }
+
+        @keyframes pulse-red-timer { 0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); } 50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.8); } 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
+        .floating { animation: float 4s ease-in-out infinite; }
+        
+        @keyframes fade-in-up { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes card-success-pulse { 0% { border-color: rgba(59, 130, 246, 0.3); box-shadow: 0 0 30px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.1); } 50% { border-color: var(--neon-accent); box-shadow: 0 0 50px var(--neon-accent), inset 0 0 30px rgba(16, 185, 129, 0.3); } 100% { border-color: var(--neon-accent); box-shadow: 0 0 30px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.1); } }
+        .card-success-pulse { animation: card-success-pulse 0.6s ease-out forwards; }
+        @keyframes hyperspace-out { 0% { transform: scale(1); opacity: 1; filter: blur(0px); } 100% { transform: scale(3) translateZ(200px); opacity: 0; filter: blur(15px); } }
+        .animate-hyperspace-out { animation: hyperspace-out 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; pointer-events: none; }
+        @keyframes hyperspace-in { 0% { transform: scale(0.5); opacity: 0; filter: blur(10px); } 100% { transform: scale(1); opacity: 1; filter: blur(0px); } }
+        .animate-hyperspace-in { animation: hyperspace-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+
+        @keyframes popup-bounce { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.02); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-popup { animation: popup-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes stamp-in { 0% { transform: scale(2.5) rotate(-15deg); opacity: 0; } 50% { transform: scale(0.9) rotate(5deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+        .animate-stamp { animation: stamp-in 0.5s ease-out forwards; }
+
+        .neon-text-primary { text-shadow: 0 0 10px rgba(245, 158, 11, 0.8); }
+        .hidden-sys { display: none !important; }
+    </style>
+</head>
+<body class="text-slate-100">
+    <div id="portrait-warning">
+        <i class="fa-solid fa-mobile-screen text-6xl text-amber-500 mb-6 animate-pulse" style="transform: rotate(90deg);"></i>
+        <h2 class="text-2xl font-bold font-sci mb-2">PLEASE ROTATE DEVICE</h2>
+        <p class="text-slate-400">กรุณาหมุนหน้าจอเป็นแนวนอน (Landscape)<br>เพื่อให้ระบบกล้องและเซนเซอร์ทำงานได้เต็มประสิทธิภาพ</p>
+    </div>
+
+    <canvas id="bg-canvas"></canvas>
+    <video id="input_video" style="display:none;" playsinline></video>
+    <canvas id="camera-preview" class="hidden-sys interactive"></canvas>
+
+    <div id="ui-layer" class="p-4 sm:p-8">
+        
+        <!-- SCREEN 0: LOGIN -->
+        <div id="screen-login" class="interactive flex-1 flex flex-col items-center justify-center relative">
+            <div class="terminal-panel p-8 sm:p-12 text-center max-w-md w-full animate-fade-in-up" id="login-terminal-card">
+                <div class="scan-line"></div>
+                
+                <div class="relative w-24 h-24 mx-auto mb-6 floating" id="login-logo-anim">
+                    <div class="absolute inset-0 border-4 border-blue-500/30 rounded-full animate-ping"></div>
+                    <div class="absolute inset-0 border-2 border-blue-500 rounded-full border-t-amber-500 animate-[spin_3s_linear_infinite]"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-5xl text-amber-500 drop-shadow-[0_0_15px_rgba(245,158,11,0.8)] z-10 bg-slate-900/50 rounded-full">
+                        <i class="fa-solid fa-earth-asia"></i>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl sm:text-3xl font-sci font-bold mb-2 text-white neon-text-primary tracking-widest">ยืนยันตัวตนนักสำรวจ</h2>
+                <div class="text-blue-400 mb-8 text-sm font-sci typewriter">Establishing connection...</div>
+                
+                <form id="login-form" onsubmit="LoginSys.handleLogin(event)" class="space-y-6">
+                    <div class="relative text-left">
+                        <label class="text-[10px] text-blue-300 font-sci tracking-widest uppercase mb-1 block">STUDENT ID (เลขประจำตัว)</label>
+                        <input type="text" id="inp-studentid" required placeholder="Enter ID" class="cyber-input w-full p-3 text-center text-lg font-bold text-white">
+                        <div id="err-studentid" style="display: none;" class="text-red-400 text-xs mt-1 text-center"><i class="fa-solid fa-circle-exclamation"></i> กรุณากรอกรหัสประจำตัว</div>
+                    </div>
+                    <div class="relative text-left">
+                        <label class="text-[10px] text-blue-300 font-sci tracking-widest uppercase mb-1 block">ASTRONAUT ID (ชื่อจริง)</label>
+                        <input type="text" id="inp-firstname" required placeholder="Enter First Name" class="cyber-input w-full p-3 text-center text-lg">
+                        <div id="err-firstname" style="display: none;" class="text-red-400 text-xs mt-1 text-center"><i class="fa-solid fa-circle-exclamation"></i> กรุณากรอกชื่อจริง</div>
+                    </div>
+                    <div class="relative text-left">
+                        <label class="text-[10px] text-blue-300 font-sci tracking-widest uppercase mb-1 block">CLEARANCE CODE (นามสกุล)</label>
+                        <input type="text" id="inp-lastname" required placeholder="Enter Last Name" class="cyber-input w-full p-3 text-center text-lg">
+                        <div id="err-lastname" style="display: none;" class="text-red-400 text-xs mt-1 text-center"><i class="fa-solid fa-circle-exclamation"></i> กรุณากรอกนามสกุล</div>
+                    </div>
+                    <button type="submit" id="btn-login-submit" class="w-full mt-6 px-8 py-4 bg-amber-600/90 hover:bg-amber-500 text-white font-sci font-bold tracking-widest rounded text-lg shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all transform hover:scale-105 border border-amber-400 relative overflow-hidden group">
+                        <span class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500"></span>
+                        <span id="btn-login-text"><i class="fa-solid fa-fingerprint mr-2 animate-pulse"></i> AUTHORIZE ACCESS</span>
+                    </button>
+                </form>
+
+                <div id="welcome-back-msg" class="hidden-sys absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 backdrop-blur-md rounded-2xl">
+                    <div class="text-6xl text-green-400 mb-4 drop-shadow-[0_0_15px_rgba(74,222,128,0.8)] animate-bounce"><i class="fa-solid fa-satellite-dish"></i></div>
+                    <h2 class="text-3xl font-sci font-bold text-white tracking-widest mb-2">WELCOME BACK</h2>
+                    <div id="welcome-back-name" class="text-2xl text-amber-400 font-sci font-bold">Name</div>
+                    <div class="mt-4 text-sm text-slate-400 font-sci typewriter">Re-establishing connection...</div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-blue-900/40 flex flex-col items-center justify-center gap-2 relative z-10">
+                    <div class="text-xs text-slate-400 tracking-widest">SYSTEM ARCHITECT</div>
+                    <div class="flex items-center gap-3 px-4 py-2 bg-slate-900/80 rounded-full border border-slate-700 shadow-inner">
+                        <img src="https://i.postimg.cc/vczmcLPB/image.png" onerror="this.src='https://placehold.co/100x100/f59e0b/ffffff?text=พี่นัท'" alt="อ.พี่นัท Logo" class="w-8 h-8 rounded-full border-2 border-amber-500 object-cover shadow-[0_0_10px_rgba(245,158,11,0.4)]">
+                        <span class="font-bold text-amber-300 tracking-widest text-sm font-sci">อ.พี่นัท</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 1: MAIN MENU -->
+        <div id="screen-menu" class="hidden-sys interactive flex-1 flex flex-col items-center justify-center relative">
+            <div class="glass-panel p-6 sm:p-10 text-center max-w-2xl w-full border-amber-500/30 flex flex-col items-center">
+                
+                <!-- Player Compact Info -->
+                <div class="flex items-center justify-between bg-slate-900/80 border border-slate-700 px-5 py-3 rounded-xl mb-6 w-full shadow-inner">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 border-2 border-amber-300 flex items-center justify-center text-white text-xl shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+                            <i class="fa-solid fa-user-astronaut"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-[10px] text-slate-400 tracking-widest uppercase">Agent Recognized</div>
+                            <div id="display-player-name" class="font-bold text-sm sm:text-base text-white font-sci">Unknown</div>
+                        </div>
+                    </div>
+                    <div class="text-right border-l border-slate-700 pl-4">
+                        <div class="text-[10px] text-slate-400 tracking-widest uppercase">High Score</div>
+                        <div id="display-high-score" class="font-bold text-amber-400 font-sci text-xl drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]">0</div>
+                    </div>
+                </div>
+
+                <!-- Title Section -->
+                <h1 class="title-clamp font-sci font-bold mb-1 text-white neon-text-primary tracking-wider">ASTRO EXPLORER</h1>
+                <h2 class="subtitle-clamp text-blue-300 mb-6 font-semibold">ภารกิจพิชิต โลก ดาราศาสตร์ และอวกาศ</h2>
+                
+                <!-- Instruction Text -->
+                <div class="w-full max-w-md bg-slate-900/60 p-4 rounded-lg border border-slate-700 mb-6 text-sm text-slate-300 text-left">
+                    <div class="font-bold text-amber-400 mb-2 flex items-center gap-2"><i class="fa-solid fa-bolt"></i> วิธีเล่น (Mechanics):</div>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-slate-400">
+                        <li>เดินสลับ ซ้าย-กลาง-ขวา เพื่อเลือกคำตอบ</li>
+                        <li><b class="text-amber-400">"กระโดด"</b> เพื่อยืนยันคำตอบ</li>
+                        <li>หรือสามารถใช้ <b>"เมาส์คลิก/สัมผัส"</b> ที่ตัวเลือกได้โดยตรง</li>
+                    </ul>
+                </div>
+
+                <!-- Camera Status & Fallback -->
+                <div class="flex items-center justify-between mb-6 bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 w-full max-w-md mx-auto">
+                    <div id="cam-status" class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Initializing System...
+                    </div>
+                    <button onclick="GameSys.toggleInputMode()" id="btn-toggle-mode" class="text-[10px] px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-600 text-slate-300 transition-colors uppercase tracking-wider font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-hand-pointer"></i> Touch Mode
+                    </button>
+                </div>
+
+                <!-- Primary CTA -->
+                <button onclick="GameSys.startCountdown()" id="btn-start" class="btn-shimmer px-10 py-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-full shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all transform hover:scale-105 text-lg w-full max-w-md mx-auto disabled:opacity-50">
+                    <i class="fa-solid fa-rocket mr-2"></i> LAUNCH MISSION
+                </button>
+
+                <!-- Secondary CTAs -->
+                <div class="flex justify-center gap-6 mt-6 w-full text-sm">
+                    <button onclick="GameSys.showHowToPlay()" class="text-slate-400 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question"></i> How to Play
+                    </button>
+                    <button onclick="AudioSys.toggleSound()" id="btn-sound" class="text-slate-400 hover:text-white transition flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high"></i> Sound
+                    </button>
+                    <button onclick="LoginSys.logout()" class="text-red-400 hover:text-red-300 transition flex items-center gap-2">
+                        <i class="fa-solid fa-power-off"></i> Switch User
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN: COUNTDOWN OVERLAY -->
+        <div id="screen-countdown" class="hidden-sys absolute inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+            <div id="countdown-text" class="text-9xl font-sci font-bold text-amber-400 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)]">3</div>
+        </div>
+
+        <!-- MODAL: HOW TO PLAY -->
+        <div id="modal-howto" class="interactive hidden-sys absolute inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4">
+            <div class="glass-panel p-8 max-w-lg w-full relative border-amber-500/50">
+                <button onclick="GameSys.hideHowToPlay()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-2xl transition"><i class="fa-solid fa-xmark"></i></button>
+                <h2 class="text-2xl font-sci text-amber-400 mb-6 border-b border-amber-800 pb-2 neon-text-primary"><i class="fa-solid fa-gamepad mr-2"></i> HOW TO PLAY</h2>
+                <div class="space-y-4 text-sm sm:text-base text-slate-200">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-blue-400 w-10 text-center"><i class="fa-solid fa-street-view"></i></div>
+                        <div><strong class="text-white">STEP 1:</strong> ยืนห่างจากกล้อง 1.5 - 2 เมตร ให้กล้องมองเห็นตัวนักบินอวกาศชัดเจน</div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-amber-400 w-10 text-center"><i class="fa-solid fa-arrows-left-right"></i></div>
+                        <div><strong class="text-white">STEP 2:</strong> <b>เดินซ้าย-ขวา</b> เพื่อขยับตัวผู้เล่น ไปชี้ที่ <b>ตัวเลือกดวงดาว (คำตอบ)</b></div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl text-green-400 w-10 text-center"><i class="fa-solid fa-person-arrow-up-from-line"></i></div>
+                        <div><strong class="text-white">STEP 3:</strong> <b>"กระโดด" (JUMP)</b> เพื่อกดยืนยันคำตอบ!</div>
+                    </div>
+                </div>
+                <div class="mt-6 text-center">
+                    <button onclick="GameSys.hideHowToPlay()" class="px-6 py-2 bg-amber-600 text-white rounded-full font-bold hover:bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] transition">GOT IT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: GAME UI -->
+        <div id="screen-game" class="hidden-sys flex-1 flex flex-col h-full w-full max-w-6xl mx-auto">
+            <div class="glass-panel px-6 py-3 flex justify-between items-center mb-6 interactive border-blue-500/30">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full border-2 border-cyan-400 overflow-hidden bg-slate-900 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.3)]">
+                        <i class="fa-solid fa-user-astronaut text-2xl text-cyan-300"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest">ผู้เล่น</div>
+                        <div id="ui-player-name" class="font-bold text-white tracking-wide text-sm sm:text-base font-sci uppercase">Player</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 sm:gap-8 bg-slate-900/80 px-6 py-2 rounded-full border border-slate-700 shadow-inner">
+                    <div class="text-center">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">ข้อ</div>
+                        <div class="font-bold text-white text-lg"><span id="ui-qnum">1</span> <span class="text-slate-500 text-sm">/ 5</span></div>
+                    </div>
+                    <div class="w-px h-8 bg-slate-700"></div>
+                    <div class="text-center">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">คะแนน</div>
+                        <div id="ui-score" class="font-bold text-amber-400 text-xl font-sci drop-shadow-[0_0_5px_rgba(245,158,11,0.8)]">0</div>
+                    </div>
+                    <div class="w-px h-8 bg-slate-700"></div>
+                    <div class="text-center">
+                        <div class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">พลังงาน</div>
+                        <div id="ui-energy" class="flex gap-1 text-red-500 text-base mt-1 drop-shadow-[0_0_3px_rgba(239,68,68,0.8)]"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="document.getElementById('camera-preview').classList.toggle('hidden-sys');" class="bg-slate-800/80 hover:bg-slate-700 border border-slate-600 px-3 py-2 rounded-full text-sm text-slate-300 transition-colors flex items-center justify-center w-10 h-10">
+                        <i class="fa-solid fa-video"></i>
+                    </button>
+                    <button onclick="GameSys.returnToMenu()" class="bg-slate-800/80 hover:bg-red-900/50 border border-slate-600 px-3 py-2 rounded-full text-sm text-slate-300 hover:text-red-400 transition-colors flex items-center justify-center w-10 h-10">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="question-container" class="p-8 sm:p-12 mb-8 text-center z-10 flex-1 flex flex-col items-center justify-center relative interactive">
+                <div id="ui-timer-circle" class="circular-timer" style="--timer-pct: 100%;">
+                    <span id="ui-timer" class="circular-timer-text">30</span>
+                </div>
+
+                <div class="w-full flex justify-between items-center absolute top-4 left-0 px-4 sm:px-6 mt-4">
+                    <div id="ui-category" class="text-cyan-300 text-[10px] sm:text-xs font-bold tracking-widest bg-cyan-900/30 px-3 py-1 rounded-full border border-cyan-800 uppercase">CATEGORY</div>
+                    <div id="ui-mode-text" class="text-[10px] text-slate-500 uppercase tracking-widest hidden sm:block">โหมด: AI Pose + กระโดด</div>
+                </div>
+                
+                <h2 id="ui-question" class="text-xl sm:text-2xl md:text-3xl font-semibold leading-relaxed relative z-20 text-white drop-shadow-md mt-6">
+                    Loading Question...
+                </h2>
+                
+                <div id="question-result-overlay" class="absolute inset-0 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 z-40 bg-slate-900/95 backdrop-blur-md rounded-2xl">
+                    <div id="question-result-icon" class="text-6xl mb-2 drop-shadow-lg"></div>
+                    <div id="question-result-text" class="text-4xl font-bold font-sci tracking-widest drop-shadow-lg"></div>
+                    <div id="question-result-pts" class="text-xl font-bold font-sci tracking-widest mt-2 drop-shadow-md"></div>
+                    <div id="question-result-desc" class="mt-6 px-8 py-3 bg-slate-800/80 border border-slate-600 rounded-lg text-slate-300 text-sm max-w-2xl hidden"></div>
+                </div>
+            </div>
+
+            <div class="relative w-full h-16 mb-4 z-20 interactive flex items-center justify-center">
+                <div class="track-line"></div>
+                <div id="player-indicator" class="absolute top-1/2 -translate-y-1/2 w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.5)] border-2 border-cyan-500 transition-all duration-100 transform -translate-x-1/2 z-10" style="left: 50%; display: none;">
+                    <i class="fa-solid fa-street-view text-3xl drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]"></i>
+                </div>
+            </div>
+
+            <div id="ui-choices" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4 z-20 interactive relative"></div>
+
+            <div class="text-center text-[10px] sm:text-xs text-slate-400 mt-2 tracking-wide bg-slate-900/50 py-1 sm:py-2 rounded-full border border-slate-700/50 inline-block px-4 sm:px-6 mx-auto">
+                <i class="fa-solid fa-arrows-left-right text-amber-500 mr-2"></i> เดินไปยังโซนคำตอบ แล้ว <b>"กระโดด"</b> เพื่อยืนยัน
+            </div>
+        </div>
+
+        <!-- SCREEN 3: RESULT DASHBOARD -->
+        <div id="screen-result" class="hidden-sys interactive absolute inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-lg p-4">
+            <div class="glass-panel p-8 sm:p-12 max-w-3xl w-full text-center relative overflow-hidden border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-blue-500 to-amber-400"></div>
+                
+                <h1 class="text-4xl sm:text-5xl font-sci font-bold mb-2 text-amber-400 tracking-widest neon-text-primary" id="result-header">MISSION COMPLETE</h1>
+                <div class="text-xl text-slate-400 mb-6 font-semibold uppercase" id="result-subheader">SPACE EXPLORATION FINISHED</div>
+
+                <div class="flex flex-col md:flex-row gap-6 mb-6">
+                    <div class="flex-1 bg-slate-900/80 p-6 rounded-xl border border-slate-700 shadow-inner flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-blue-500/5 blur-xl"></div>
+                        <div id="result-icon" class="text-6xl mb-4 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)] relative z-10"><i class="fa-solid fa-user-astronaut"></i></div>
+                        <div class="text-sm text-slate-400 uppercase tracking-widest mb-1 font-bold relative z-10">YOUR RANK</div>
+                        <div id="result-rank" class="text-2xl font-bold text-blue-300 font-sci relative z-10">MASTER ASTRONOMER</div>
+                    </div>
+
+                    <div class="flex-1 grid grid-cols-2 gap-4 text-left">
+                        <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700/80">
+                            <div class="text-slate-400 text-[10px] uppercase tracking-widest mb-1 font-bold">Total Score</div>
+                            <div id="result-score" class="font-sci text-3xl text-amber-400 font-bold drop-shadow-[0_0_5px_rgba(245,158,11,0.5)]">0</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700/80">
+                            <div class="text-slate-400 text-[10px] uppercase tracking-widest mb-1 font-bold">Time Used</div>
+                            <div id="result-time" class="font-sci text-3xl text-white font-bold">00:00</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700/80">
+                            <div class="text-slate-400 text-[10px] uppercase tracking-widest mb-1 font-bold">Correct / Wrong</div>
+                            <div class="font-sci text-2xl text-white font-bold mt-1"><span id="result-correct" class="text-green-400">0</span> <span class="text-slate-500 text-lg">/</span> <span id="result-wrong" class="text-red-400">0</span></div>
+                        </div>
+                        <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700/80">
+                            <div class="text-slate-400 text-[10px] uppercase tracking-widest mb-1 font-bold">Accuracy</div>
+                            <div id="result-acc" class="font-sci text-3xl text-blue-400 font-bold drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="backend-status" class="mb-8 p-3 rounded-lg border border-slate-700 bg-slate-900/90 text-sm font-bold flex items-center justify-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-satellite-dish animate-pulse text-amber-400"></i> 
+                    <span id="backend-status-text" class="text-amber-300 font-sci tracking-wide">Transmitting Data to Earth...</span>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button onclick="GameSys.returnToMenu()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-bold transition shadow-sm border border-slate-600">
+                        <i class="fa-solid fa-house mr-2"></i> BASE CAMP
+                    </button>
+                    <button id="btn-playagain" onclick="GameSys.startCountdown()" class="px-8 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-full font-bold shadow-[0_0_15px_rgba(245,158,11,0.5)] transition transform hover:scale-105 opacity-50 cursor-not-allowed" disabled>
+                        <i class="fa-solid fa-rotate-right mr-2 animate-spin-slow"></i> PLAY AGAIN
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // LOGIN SYSTEM
+        // ==========================================
+        const LoginSys = {
+            init() {
+                const sId = localStorage.getItem('astro_studentid');
+                const fName = localStorage.getItem('astro_firstname');
+                const lName = localStorage.getItem('astro_lastname');
+                
+                this.setupValidation();
+
+                if(sId && fName && lName) {
+                    GameState.student.studentId = sId;
+                    GameState.student.firstName = fName;
+                    GameState.student.lastName = lName;
+                    this.showWelcomeBack(fName, lName);
+                }
+            },
+            setupValidation() {
+                const inputs = ['studentid', 'firstname', 'lastname'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(`inp-${id}`);
+                    if(el) {
+                        el.addEventListener('input', () => {
+                            el.classList.remove('input-error');
+                            document.getElementById(`err-${id}`).style.display = 'none';
+                        });
+                    }
+                });
+            },
+            validateData(sId, fName, lName) {
+                let isValid = true;
+                if(!sId) { document.getElementById('inp-studentid').classList.add('input-error'); document.getElementById('err-studentid').style.display = 'block'; isValid = false; }
+                if(!fName || fName.length < 2) { document.getElementById('inp-firstname').classList.add('input-error'); document.getElementById('err-firstname').style.display = 'block'; isValid = false; }
+                if(!lName || lName.length < 2) { document.getElementById('inp-lastname').classList.add('input-error'); document.getElementById('err-lastname').style.display = 'block'; isValid = false; }
+                return isValid;
+            },
+            async handleLogin(e) {
+                if(e) e.preventDefault();
+                const btn = document.getElementById('btn-login-submit');
+                const btnText = document.getElementById('btn-login-text');
+                const sId = document.getElementById('inp-studentid').value.trim();
+                const fName = document.getElementById('inp-firstname').value.trim();
+                const lName = document.getElementById('inp-lastname').value.trim();
+
+                if(!this.validateData(sId, fName, lName)) {
+                    btn.classList.add('btn-error'); if(AudioSys.ctx) AudioSys.playError();
+                    setTimeout(() => btn.classList.remove('btn-error'), 400); return;
+                }
+
+                btn.classList.add('btn-loading');
+                btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> AUTHORIZING...';
+                if(AudioSys.ctx) AudioSys.playTick();
+
+                await new Promise(r => setTimeout(r, 1200));
+
+                btn.classList.remove('btn-loading');
+                btn.classList.add('btn-success');
+                btnText.innerHTML = '<i class="fa-solid fa-check mr-2"></i> ACCESS GRANTED';
+                
+                const terminalCard = document.getElementById('login-terminal-card');
+                if(terminalCard) terminalCard.classList.add('card-success-pulse');
+
+                if(AudioSys.ctx) AudioSys.playCorrect();
+
+                GameState.student.studentId = sId; GameState.student.firstName = fName; GameState.student.lastName = lName;
+                localStorage.setItem('astro_studentid', sId); localStorage.setItem('astro_firstname', fName); localStorage.setItem('astro_lastname', lName);
+
+                setTimeout(() => {
+                    btn.classList.remove('btn-success');
+                    btnText.innerHTML = '<i class="fa-solid fa-fingerprint mr-2 animate-pulse"></i> AUTHORIZE ACCESS';
+                    if(terminalCard) terminalCard.classList.remove('card-success-pulse');
+                    this.showMenu();
+                }, 600);
+            },
+            showWelcomeBack(fName, lName) {
+                const welcomeScreen = document.getElementById('welcome-back-msg');
+                document.getElementById('welcome-back-name').innerText = `${fName} ${lName}`;
+                welcomeScreen.classList.remove('hidden-sys');
+
+                if(AudioSys.ctx === null) AudioSys.init();
+                
+                setTimeout(() => {
+                    if(AudioSys.ctx) AudioSys.playCorrect();
+                    const terminalCard = document.getElementById('login-terminal-card');
+                    if(terminalCard) terminalCard.classList.add('card-success-pulse');
+
+                    setTimeout(() => {
+                        welcomeScreen.classList.add('hidden-sys');
+                        if(terminalCard) terminalCard.classList.remove('card-success-pulse');
+                        this.showMenu();
+                    }, 600);
+                }, 1500);
+            },
+            logout() {
+                localStorage.removeItem('astro_studentid'); localStorage.removeItem('astro_firstname'); localStorage.removeItem('astro_lastname');
+                GameState.student.studentId = ''; GameState.student.firstName = ''; GameState.student.lastName = '';
+                document.getElementById('screen-menu').classList.add('hidden-sys');
+                document.getElementById('screen-login').classList.remove('hidden-sys');
+                const terminalCard = document.getElementById('login-terminal-card');
+                if(terminalCard) { terminalCard.classList.remove('animate-fade-in-up'); void terminalCard.offsetWidth; terminalCard.classList.add('animate-fade-in-up'); }
+                document.getElementById('inp-studentid').value = ''; document.getElementById('inp-firstname').value = ''; document.getElementById('inp-lastname').value = '';
+            },
+            showMenu() {
+                const screenLogin = document.getElementById('screen-login');
+                const screenMenu = document.getElementById('screen-menu');
+
+                screenLogin.classList.add('animate-hyperspace-out');
+                if(AudioSys.ctx) { AudioSys.playTone(300, 'sine', 0.1); setTimeout(() => AudioSys.playTone(800, 'sine', 0.3), 100); }
+
+                setTimeout(() => {
+                    screenLogin.classList.add('hidden-sys');
+                    screenLogin.classList.remove('animate-hyperspace-out');
+                    screenMenu.classList.remove('hidden-sys');
+                    screenMenu.classList.add('animate-hyperspace-in');
+                    
+                    document.getElementById('display-player-name').innerText = `ID:${GameState.student.studentId} | ${GameState.student.firstName} ${GameState.student.lastName}`;
+                    document.getElementById('ui-player-name').innerText = `${GameState.student.firstName}`;
+                    
+                    const hs = localStorage.getItem(`astro_hs_${GameState.student.studentId}`) || 0;
+                    document.getElementById('display-high-score').innerText = hs;
+
+                    if(AudioSys.ctx === null) AudioSys.init();
+                    setTimeout(() => { screenMenu.classList.remove('animate-hyperspace-in'); }, 400);
+                }, 350);
+            }
+        };
+
+        // ==========================================
+        // BACKEND SYSTEM
+        // ==========================================
+        const BackendSys = {
+            url: "https://script.google.com/macros/s/AKfycbwuz29I3dKjc0brSgLWHFJmlpPrb-G4c2Xt-ESXY6LemtH5Chjbp6jtki0IxvXsXTC9/exec",
+            async saveAttempt(payload) {
+                const statusIcon = document.querySelector('#backend-status i');
+                const statusText = document.getElementById('backend-status-text');
+                const btnPlayAgain = document.getElementById('btn-playagain');
+                
+                try {
+                    statusIcon.className = "fa-solid fa-satellite-dish animate-pulse text-amber-400";
+                    statusText.innerText = "Transmitting Data to Earth...";
+                    statusText.className = "text-amber-300";
+
+                    const response = await fetch(this.url, { method: 'POST', body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    
+                    if(result.success) {
+                        statusIcon.className = "fa-solid fa-circle-check text-green-400";
+                        statusText.innerText = "Data Transmitted Successfully!";
+                        statusText.className = "text-green-400";
+                    } else throw new Error(result.message);
+                } catch (error) {
+                    console.error("Backend Error:", error);
+                    statusIcon.className = "fa-solid fa-triangle-exclamation text-red-400";
+                    statusText.innerText = "Transmission Failed (Local Data Kept)";
+                    statusText.className = "text-red-400";
+                } finally {
+                    btnPlayAgain.disabled = false;
+                    btnPlayAgain.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        };
+
+        // ==========================================
+        // AUDIO SYSTEM
+        // ==========================================
+        const AudioSys = {
+            ctx: null, isMuted: false,
+            init() { try { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); this.updateIcon(); } catch(e) {} },
+            toggleSound() { this.isMuted = !this.isMuted; if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); this.updateIcon(); },
+            updateIcon() { const btn = document.getElementById('btn-sound'); if(btn) btn.innerHTML = this.isMuted ? '<i class="fa-solid fa-volume-xmark text-xl"></i> Sound' : '<i class="fa-solid fa-volume-high text-xl"></i> Sound'; },
+            playTone(freq, type, duration) { 
+                if(this.isMuted || !this.ctx) return; 
+                const osc = this.ctx.createOscillator(); 
+                const gain = this.ctx.createGain(); 
+                osc.type = type; 
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime); 
+                osc.connect(gain); 
+                gain.connect(this.ctx.destination); 
+                osc.start(); 
+                gain.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + duration); 
+                osc.stop(this.ctx.currentTime + duration); 
+                
+                // Dispose nodes after playback
+                setTimeout(() => { osc.disconnect(); gain.disconnect(); }, (duration * 1000) + 100);
+            },
+            playCorrect() { this.playTone(600, 'sine', 0.1); setTimeout(()=>this.playTone(800, 'sine', 0.2), 100); }, 
+            playError() { this.playTone(200, 'sawtooth', 0.3); }, 
+            playGrab() { this.playTone(400, 'square', 0.1); }, 
+            playTick() { this.playTone(1000, 'sine', 0.05); },
+            playCountdownBeep() { this.playTone(880, 'sine', 0.1); },
+            playCountdownGo() { this.playTone(1760, 'sine', 0.3); },
+            playScoreRoll() {
+                if(this.isMuted || !this.ctx) return;
+                let count = 0;
+                let rollInterval = setInterval(() => { this.playTone(800 + (count * 20), 'sine', 0.03); count++; if(count > 25) clearInterval(rollInterval); }, 60);
+            },
+            playTriumph() {
+                if(this.isMuted || !this.ctx) return;
+                this.playTone(523.25, 'sine', 0.1); setTimeout(() => this.playTone(659.25, 'sine', 0.1), 150); setTimeout(() => this.playTone(783.99, 'sine', 0.4), 300);
+            }
+        };
+
+        // ==========================================
+        // GRAPHICS SYSTEM (Three.js with Parallax)
+        // ==========================================
+        const GraphicsSys = {
+            scene: null, camera: null, renderer: null, pivot: null, stars1: null, stars2: null, stars3: null,
+            isGraphicsActive: true,
+            init() {
+                const canvas = document.getElementById('bg-canvas');
+                this.scene = new THREE.Scene(); this.scene.fog = new THREE.FogExp2(0x050b14, 0.002);
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); this.camera.position.z = 35;
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true }); this.renderer.setSize(window.innerWidth, window.innerHeight);
+                
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Optimized
+                
+                this.pivot = new THREE.Group(); this.scene.add(this.pivot);
+                const geoCore = new THREE.SphereGeometry(4, 16, 16);
+                const matCore = new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: true, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+                const sun = new THREE.Mesh(geoCore, matCore); this.pivot.add(sun);
+
+                for(let i=0; i<4; i++) {
+                    const radius = 8 + (i*4);
+                    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.02, 16, 100), new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.3 }));
+                    ring.rotation.x = Math.PI / 2 + (Math.random() * 0.2); this.pivot.add(ring);
+                    
+                    const planetOrbit = new THREE.Group(); planetOrbit.rotation.y = Math.random() * Math.PI * 2;
+                    const planet = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random()*0.5, 8, 8), new THREE.MeshBasicMaterial({ color: i%2==0?0x3b82f6:0x10b981 }));
+                    planet.position.x = radius; planetOrbit.add(planet); planetOrbit.userData = { speed: 0.005 + (Math.random() * 0.01) }; this.pivot.add(planetOrbit);
+                }
+                this.pivot.position.set(0, 0, -20); this.pivot.rotation.x = 0.2;
+                
+                const createStars = (count, size, color, opacity) => {
+                    const geo = new THREE.BufferGeometry(); const pos = new Float32Array(count * 3);
+                    for(let i=0; i<count*3; i++) pos[i] = (Math.random() - 0.5) * 150;
+                    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                    return new THREE.Points(geo, new THREE.PointsMaterial({ size, color, transparent: true, opacity, blending: THREE.AdditiveBlending }));
+                };
+                
+                const isMobile = window.innerWidth < 768;
+                const starMulti = isMobile ? 0.3 : 1; 
+
+                this.stars1 = createStars(1000 * starMulti, 0.15, 0xffffff, 0.8);
+                this.stars2 = createStars(800 * starMulti, 0.25, 0x93c5fd, 0.5);
+                this.stars3 = createStars(400 * starMulti, 0.4, 0x3b82f6, 0.3);
+                this.scene.add(this.stars1, this.stars2, this.stars3);
+
+                window.addEventListener('resize', () => { this.camera.aspect = window.innerWidth / window.innerHeight; this.camera.updateProjectionMatrix(); this.renderer.setSize(window.innerWidth, window.innerHeight); });
+                this.animate();
+            },
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                if(!this.isGraphicsActive) return;
+
+                if(this.pivot) { this.pivot.rotation.y += 0.001; this.pivot.children.forEach(child => { if (child.userData.speed) child.rotation.y += child.userData.speed; }); }
+                if(this.stars1) this.stars1.rotation.y += 0.0002;
+                if(this.stars2) this.stars2.rotation.y += 0.0004;
+                if(this.stars3) this.stars3.rotation.y += 0.0006;
+                this.renderer.render(this.scene, this.camera);
+            }
+        };
+
+        // ==========================================
+        // POSE TRACKING
+        // ==========================================
+        const PoseTrackingSys = {
+            pose: null, camera: null, isReady: false, isPlayerDetected: false, baseShoulderY: null, fallbackMode: false,
+            isActive: false, lastProcessTime: 0,
+            async init() {
+                const videoElement = document.getElementById('input_video');
+                const canvasElement = document.getElementById('camera-preview');
+                const canvasCtx = canvasElement.getContext('2d');
+                const statusEl = document.getElementById('cam-status');
+
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("Browser API not supported");
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop());
+
+                    this.pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
+                    this.pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+
+                    this.pose.onResults((results) => {
+                        if(this.fallbackMode || !this.isActive) return;
+                        canvasCtx.save(); canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height); canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                        
+                        if (results.poseLandmarks) {
+                            if(!this.isPlayerDetected) { this.isPlayerDetected = true; this.updateStatusUI(); }
+                            const landmarks = results.poseLandmarks;
+                            drawConnectors(canvasCtx, landmarks, window.POSE_CONNECTIONS || POSE_CONNECTIONS, {color: '#f59e0b', lineWidth: 2});
+                            drawLandmarks(canvasCtx, landmarks, {color: '#3b82f6', lineWidth: 1, radius: 2});
+
+                            const bodyCenterX = (landmarks[11].x + landmarks[12].x) / 2;
+                            const screenXRatio = 1 - bodyCenterX;
+                            const currentShoulderY = (landmarks[11].y + landmarks[12].y) / 2;
+                            if (this.baseShoulderY === null) this.baseShoulderY = currentShoulderY;
+                            else { if (currentShoulderY < this.baseShoulderY) this.baseShoulderY = (this.baseShoulderY * 0.98) + (currentShoulderY * 0.02); else this.baseShoulderY = (this.baseShoulderY * 0.80) + (currentShoulderY * 0.20); }
+
+                            let isJumping = false;
+                            if (this.baseShoulderY - currentShoulderY > 0.06) isJumping = true; 
+                            GestureSys.updateZone(screenXRatio, isJumping);
+                        } else { 
+                            if(this.isPlayerDetected) { this.isPlayerDetected = false; this.updateStatusUI(); }
+                            GestureSys.hideIndicator(); this.baseShoulderY = null; 
+                        }
+                        canvasCtx.restore();
+                    });
+
+                    const POSE_FPS_LIMIT = 24;
+                    const frameInterval = 1000 / POSE_FPS_LIMIT;
+
+                    this.camera = new Camera(videoElement, { 
+                        onFrame: async () => { 
+                            if(this.fallbackMode || !this.isActive) return;
+                            const now = Date.now();
+                            if (now - this.lastProcessTime >= frameInterval) {
+                                this.lastProcessTime = now;
+                                await this.pose.send({image: videoElement}); 
+                            }
+                        }, 
+                        width: 320, height: 240 
+                    });
+                    await this.camera.start(); this.isReady = true; this.updateStatusUI();
+                } catch (error) { this.enableFallbackMode(); }
+            },
+            updateStatusUI() {
+                const statusEl = document.getElementById('cam-status');
+                if(this.fallbackMode) { statusEl.innerHTML = '<span class="text-amber-400"><i class="fa-solid fa-hand-pointer"></i> Touch/Mouse Mode Active</span>'; }
+                else if(this.isPlayerDetected) { statusEl.innerHTML = '<span class="text-green-400"><i class="fa-solid fa-user-check"></i> Player Detected (Ready)</span>'; }
+                else if(this.isReady) { statusEl.innerHTML = '<span class="text-blue-400"><i class="fa-solid fa-video"></i> Camera Ready. Waiting for player...</span>'; }
+            },
+            enableFallbackMode() {
+                this.fallbackMode = true; this.isReady = true; this.isPlayerDetected = false;
+                document.getElementById('camera-preview').style.display = 'none';
+                document.getElementById('ui-mode-text').innerText = "โหมด: Touch / Mouse";
+                this.updateStatusUI();
+            }
+        };
+
+        const GestureSys = {
+            indicatorEl: null, isJumping: false, activeZone: null, jumpCooldown: false, smoothXRatio: 0.5,
+            init() { this.indicatorEl = document.getElementById('player-indicator'); },
+            updateZone(xRatio, isJumpingNow) {
+                if(!this.indicatorEl || PoseTrackingSys.fallbackMode) return;
+                
+                this.smoothXRatio = (this.smoothXRatio * 0.8) + (xRatio * 0.2);
+                const percentX = Math.max(0, Math.min(100, this.smoothXRatio * 100));
+                
+                let currentZone = 1; 
+                if (this.smoothXRatio < 0.30) currentZone = 0; 
+                else if (this.smoothXRatio > 0.70) currentZone = 2;
+
+                if (!this.jumpCooldown && !GameState.isAnswering) {
+                    this.indicatorEl.style.display = 'flex'; this.indicatorEl.style.left = `${percentX}%`;
+                    
+                    if (this.activeZone !== currentZone) {
+                        document.querySelectorAll('.choice-card-v2').forEach(el => el.classList.remove('hovered'));
+                        this.activeZone = currentZone;
+                        const cards = document.querySelectorAll('.choice-card-v2'); 
+                        if(cards && cards[currentZone]) cards[currentZone].classList.add('hovered'); 
+                    }
+                }
+                
+                if (isJumpingNow && !this.isJumping && !this.jumpCooldown && !GameState.isAnswering) {
+                    this.indicatorEl.classList.add('scale-150', 'bg-amber-400', 'border-white');
+                    setTimeout(() => this.indicatorEl.classList.remove('scale-150', 'bg-amber-400', 'border-white'), 300);
+                    document.getElementById('question-container').style.boxShadow = "inset 0 0 40px rgba(245, 158, 11, 0.5)";
+                    setTimeout(() => { document.getElementById('question-container').style.boxShadow = ""; }, 300);
+
+                    if (this.activeZone !== null) {
+                        const cards = document.querySelectorAll('.choice-card-v2');
+                        if (cards && cards[this.activeZone]) { 
+                            this.triggerAnswer(this.activeZone, cards[this.activeZone]);
+                        }
+                    }
+                }
+                this.isJumping = isJumpingNow;
+            },
+            triggerAnswer(zone, cardEl) {
+                this.jumpCooldown = true; 
+                setTimeout(() => { this.jumpCooldown = false; }, 2000);
+                AudioSys.playGrab(); 
+                let ripple = document.createElement('span'); ripple.className = 'jump-ripple'; cardEl.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
+                cardEl.classList.add('grabbing'); 
+                GameSys.checkAnswer(zone, cardEl); 
+            },
+            hideIndicator() { 
+                if(this.indicatorEl) this.indicatorEl.style.display = 'none'; 
+                document.querySelectorAll('.choice-card-v2').forEach(el => el.classList.remove('hovered', 'grabbing')); 
+                this.activeZone = null; this.isJumping = false; 
+            }
+        };
+
+        const DragDropSys = {
+            init() {
+                const selectAnswer = (e) => {
+                    if(GameState.isAnswering) return;
+                    const card = e.target.closest('.choice-card-v2'); if(!card) return;
+                    e.preventDefault(); AudioSys.playGrab(); card.classList.add('grabbing'); GameSys.checkAnswer(parseInt(card.dataset.index), card);
+                };
+                const choicesContainer = document.getElementById('ui-choices');
+                choicesContainer.addEventListener('mousedown', selectAnswer); choicesContainer.addEventListener('touchstart', selectAnswer, {passive: false});
+            }
+        };
+
+        // ==========================================
+        // QUESTION BANK
+        // ==========================================
+        const QuestionBank = [
+            { id: "A01", q: "การศึกษาโครงสร้างภายในของโลกทางอ้อมนักวิทยาศาสตร์อาศัยข้อมูลจากสิ่งใดเป็นหลัก?", c: ["คลื่นไหวสะเทือน", "การระเบิดของภูเขาไฟ", "อุกกาบาตที่ตกมาบนโลก"], a: 0, cat: "โครงสร้างโลก", desc: "ความเร็วของคลื่นไหวสะเทือน (P-wave, S-wave) ที่เปลี่ยนไปตามตัวกลาง ช่วยบอกสถานะความหนาแน่นภายในโลกได้" },
+            { id: "A02", q: "คลื่นปฐมภูมิ (P-wave) มีลักษณะการเคลื่อนที่อย่างไร?", c: ["ผ่านได้ทุกสถานะ", "ผ่านได้เฉพาะของแข็ง", "เคลื่อนที่ตามแนวผิวโลก"], a: 0, cat: "คลื่นไหวสะเทือน", desc: "P-wave เป็นคลื่นตามยาว ทะลุผ่านได้ทั้งของแข็ง ของเหลว และแก๊ส" },
+            { id: "A03", q: "ธาตุองค์ประกอบทางเคมีที่พบมากที่สุดในบริเวณ 'แก่นโลก' คือข้อใด?", c: ["ซิลิกอนและแมกนีเซียม", "ออกซิเจนและคาร์บอน", "เหล็กและนิกเกิล"], a: 2, cat: "โครงสร้างโลก", desc: "แก่นโลก (Core) มีองค์ประกอบหลักเป็นโลหะหนัก คือ เหล็กและนิกเกิล" },
+            { id: "A04", q: "โครงสร้างโลกชั้นใดที่มีสถานะเป็นของเหลวหนืดและเป็นแหล่งกำเนิดแมกมา?", c: ["ชั้นเปลือกโลก", "ชั้นฐานธรณีภาค", "ชั้นแก่นโลกชั้นใน"], a: 1, cat: "โครงสร้างโลก", desc: "ฐานธรณีภาค (Asthenosphere) อยู่ในเนื้อโลกตอนบน มีลักษณะเป็นพลาสติกและเป็นแหล่งกำเนิดแมกมา" },
+            { id: "A05", q: "ข้อใดคือเกณฑ์สำคัญที่ใช้แบ่งโครงสร้างโลกออกเป็น ธรณีภาค ฐานธรณีภาค มีโซสเฟียร์ และแก่นโลก?", c: ["ความหนาแน่นของสสาร", "องค์ประกอบทางเคมี", "ความเร็วของคลื่นไหวสะเทือน"], a: 2, cat: "โครงสร้างโลก", desc: "การแบ่งชั้นทางกายภาพ (เช่น ธรณีภาค, ฐานธรณีภาค) ใช้การเปลี่ยนแปลงความเร็วของคลื่นไหวสะเทือนเป็นเกณฑ์หลัก" },
+            { id: "A06", q: "เพราะเหตุใดคลื่นทุติยภูมิ (S-wave) จึงไม่สามารถเดินทางผ่านแก่นโลกชั้นนอกได้?", c: ["อุณหภูมิของแก่นโลกสูงเกินไป", "สถานะของแก่นโลกชั้นนอกเป็นของเหลว", "แก่นโลกชั้นนอกมีความหนาแน่นต่ำ"], a: 1, cat: "คลื่นไหวสะเทือน", desc: "S-wave เป็นคลื่นตามขวาง ไม่สามารถเดินทางผ่านตัวกลางที่มีสถานะเป็น 'ของเหลว' ได้" },
+            { id: "A07", q: "หากใช้ความเร็วคลื่นไหวสะเทือนเป็นเกณฑ์ โลกจะแบ่งออกเป็นกี่ชั้น?", c: ["3 ชั้น", "4 ชั้น", "5 ชั้น"], a: 2, cat: "โครงสร้างโลก", desc: "แบ่งได้ 5 ชั้น ได้แก่ ธรณีภาค, ฐานธรณีภาค, มัชฌิมภาค, แก่นโลกชั้นนอก, แก่นโลกชั้นใน" },
+            { id: "A08", q: "หากสามารถขุดเจาะลงไปใต้ผิวโลกได้ลึก 12 กิโลเมตร ข้อมูลที่ได้จะเป็นข้อมูลของโครงสร้างโลกชั้นใด?", c: ["ชั้นฐานธรณีภาค", "ชั้นเปลือกโลก", "ชั้นเนื้อโลก"], a: 1, cat: "โครงสร้างโลก", desc: "ชั้นเปลือกโลก (Crust) มีความหนาเฉลี่ย 5-70 กิโลเมตร การเจาะ 12 กม. จึงยังคงอยู่ในเปลือกโลก" },
+            { id: "A09", q: "แก่นโลกชั้นนอก (Outer core) มีลักษณะสำคัญทางกายภาพอย่างไร?", c: ["เป็นของแข็ง อุณหภูมิต่ำ", "เป็นของเหลว อุณหภูมิสูง", "เป็นของแข็ง อุณหภูมิสูงมาก"], a: 1, cat: "โครงสร้างโลก", desc: "แก่นโลกชั้นนอกมีสถานะเป็นของเหลว ซึ่งการไหลวนของมันเป็นต้นกำเนิดสนามแม่เหล็กโลก" },
+            { id: "A10", q: "หากพบว่า 'เขตอับคลื่นปฐมภูมิ (Shadow zone)' มีขนาดแคบลง สันนิษฐานได้ว่าโครงสร้างโลกมีการเปลี่ยนแปลงอย่างไร?", c: ["เปลือกโลกมีความหนามากขึ้น", "แก่นโลกชั้นนอกมีขนาดเล็กลง", "เนื้อโลกมีอุณหภูมิลดลงฉับพลัน"], a: 1, cat: "คลื่นไหวสะเทือน", desc: "เขตอับคลื่นเกิดจากการหักเหเมื่อคลื่นผ่านแก่นโลกชั้นนอก (ของเหลว) หากเขตนี้แคบลง แสดงว่าสิ่งกีดขวาง (แก่นนอก) มีขนาดเล็กลง" },
+            { id: "A11", q: "ผู้ที่เสนอทฤษฎีทวีปเลื่อน (Theory of Continental Drift) คือใคร?", c: ["ชาร์ล ดาร์วิน", "อัลเฟรด เวเกเนอร์", "อัลเบิร์ต ไอน์สไตน์"], a: 1, cat: "การแปรสัณฐาน", desc: "อัลเฟรด เวเกเนอร์ นักอุตุนิยมวิทยาชาวเยอรมัน เสนอแนวคิดว่าแผ่นดินเคยติดกันเป็นมหาทวีปพันเจีย" },
+            { id: "A12", q: "เมื่อมหาทวีปพันเจีย แตกออกเป็น 2 ส่วน ทวีปทางตอนใต้มีชื่อเรียกว่าอะไร?", c: ["ลอเรเซีย", "ยูเรเชีย", "กอนด์วานา"], a: 2, cat: "การแปรสัณฐาน", desc: "มหาทวีปทางเหนือคือ ลอเรเซีย (Laurasia) และทางใต้คือ กอนด์วานา (Gondwana)" },
+            { id: "A13", q: "หลักฐานใด 'ไม่ใช่' หลักฐานที่เวเกเนอร์นำมาใช้สนับสนุนทฤษฎีทวีปเลื่อน?", c: ["การขยายตัวของเทือกสันเขากลางมหาสมุทร", "รูปร่างของชายฝั่งทวีปที่ต่อกันได้", "ซากดึกดำบรรพ์ของมีโซซอรัส"], a: 0, cat: "การแปรสัณฐาน", desc: "การขยายตัวของพื้นมหาสมุทร เป็นทฤษฎีที่เสนอโดย แฮร์รี เฮส ในยุคหลังเพื่อช่วยเติมเต็มทฤษฎีของเวเกเนอร์" },
+            { id: "A14", q: "ตามทฤษฎีการแผ่ขยายพื้นมหาสมุทร อายุของหินบะซอลต์บนพื้นมหาสมุทรมีลักษณะเป็นไปตามข้อใด?", c: ["หินที่อยู่ใกล้สันเขากลางมหาสมุทรจะมีอายุน้อยกว่าหินที่อยู่ไกลออกไป", "หินบนพื้นมหาสมุทรทุกบริเวณมีอายุเท่ากันทั้งหมด", "หินบริเวณร่องลึกก้นสมุทรจะมีอายุน้อยที่สุดเสมอ"], a: 0, cat: "การแปรสัณฐาน", desc: "แมกมาพุ่งขึ้นมาตรงกลางเทือกสันเขา ทำให้หินที่เกิดใหม่ (อายุน้อย) อยู่ตรงกลาง และดันหินเก่าออกไปด้านข้าง" },
+            { id: "A15", q: "รอยเลื่อนแซนแอนเดรียส (San Andreas Fault) เกิดจากการเคลื่อนที่ของแผ่นธรณีในลักษณะใด?", c: ["เคลื่อนที่แยกออกจากกัน", "เคลื่อนที่เฉือนกัน", "เคลื่อนที่มุดตัวลงไป"], a: 1, cat: "รอยเลื่อน", desc: "เป็นรอยเลื่อนตามแนวระดับ เกิดจากแผ่นธรณีแปซิฟิกและแผ่นอเมริกาเหนือเคลื่อนที่เฉือนกัน" },
+            { id: "A16", q: "เทือกเขาหิมาลัย เกิดจากกระบวนการทางธรณีวิทยาในข้อใด?", c: ["แผ่นอาระเบียและแผ่นแอฟริกาแยกตัว", "แผ่นอเมริกาเหนือและแปซิฟิกเฉือนกัน", "แผ่นยูเรเชียและแผ่นอินเดีย-ออสเตรเลียชนกัน"], a: 2, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากการชนกันของแผ่นทวีป (Continental-Continental collision) ทำให้แผ่นดินโก่งตัวสูงขึ้น" },
+            { id: "A17", q: "หุบเขาทรุดแอฟริกาตะวันออก (East African Rift) และทะเลแดง เกิดจากการเคลื่อนที่ของแผ่นธรณีลักษณะใด?", c: ["ชนกัน", "แยกจากกัน", "สวนกัน"], a: 1, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากแผ่นทวีปเคลื่อนที่แยกออกจากกัน ทำให้แผ่นดินทรุดตัวกลายเป็นหุบเขาและทะเลในที่สุด" },
+            { id: "A18", q: "หมู่เกาะญี่ปุ่น เป็นกลุ่มภูเขาไฟรูปโค้ง (Island arc) ที่เกิดจากสาเหตุใด?", c: ["แผ่นธรณีทวีปชนกับแผ่นธรณีทวีป", "แผ่นมหาสมุทรเคลื่อนที่แยกจากกัน", "แผ่นธรณีมหาสมุทรชนและมุดตัวลงใต้แผ่นธรณีอีกแผ่น"], a: 2, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากการมุดตัวของแผ่นมหาสมุทรแปซิฟิก เกิดการหลอมละลายแล้วผุดขึ้นเป็นแนวภูเขาไฟรูปโค้ง" },
+            { id: "A19", q: "การเคลื่อนที่แยกออกจากกันของ 'แผ่นธรณีทวีป' จะทำให้เกิดสิ่งใด?", c: ["ภูเขาไฟสูง", "ทะเลแดง", "ร่องลึกก้นสมุทร"], a: 1, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เมื่อแผ่นทวีปแยกตัว จะเกิดหุบเขาทรุด และเมื่อทรุดต่ำกว่าระดับน้ำทะเล น้ำจะเข้ามาขังจนกลายเป็นทะเล (เช่น ทะเลแดง)" },
+            { id: "A20", q: "บริเวณ 'เขตมุดตัว' (Subduction zone) ปลายของแผ่นธรณีที่มุดตัวลงไปในฐานธรณีภาคจะเกิดการเปลี่ยนแปลงอย่างไร?", c: ["หลอมเหลวกลายเป็นแมกมา", "แข็งตัวกลายเป็นชั้นหินแปร", "ดันตัวกลับขึ้นมาเป็นเทือกเขา"], a: 0, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เมื่อมุดตัวลงไปในชั้นที่ร้อนมาก แผ่นหินจะหลอมเหลวกลายเป็นแมกมาและดันตัวขึ้นมาปะทุบนผิวโลก" },
+            { id: "A21", q: "จุดที่อยู่ใต้ผิวโลกซึ่งเป็นตำแหน่งกำเนิดคลื่นไหวสะเทือน เรียกว่าอะไร?", c: ["จุดเหนือศูนย์เกิดแผ่นดินไหว", "ศูนย์เกิดแผ่นดินไหว", "รอยเลื่อน"], a: 1, cat: "แผ่นดินไหว", desc: "ศูนย์เกิดแผ่นดินไหว (Focus/Hypocenter) คือจุดกำเนิดใต้ดิน ส่วนจุดบนผิวดินเรียกว่าจุดเหนือศูนย์เกิด (Epicenter)" },
+            { id: "A22", q: "บริเวณ 'วงแหวนแห่งไฟ' (Ring of Fire) ซึ่งเกิดแผ่นดินไหวและภูเขาไฟระเบิดมากที่สุด ตั้งอยู่ล้อมรอบพื้นที่ใด?", c: ["มหาสมุทรแปซิฟิก", "มหาสมุทรอินเดีย", "มหาสมุทรแอตแลนติก"], a: 0, cat: "ภูเขาไฟแผ่นดินไหว", desc: "วงแหวนแห่งไฟล้อมรอบมหาสมุทรแปซิฟิก เป็นบริเวณเขตมุดตัวของแผ่นธรณีมากมาย" },
+            { id: "A23", q: "ข้อใดเป็นมาตราวัด 'ขนาด' (Magnitude) ของแผ่นดินไหว?", c: ["มาตราโมเมนต์", "มาตราเมอร์คัลลี", "มาตราอังกฤษ"], a: 0, cat: "แผ่นดินไหว", desc: "มาตราโมเมนต์ (Moment Magnitude) และริกเตอร์ วัดพลังงานที่ปล่อยออกมา ส่วนเมอร์คัลลีวัดความรุนแรง (ความเสียหาย)" },
+            { id: "A24", q: "ปัจจัยใดที่มีผลทำให้การระเบิดของภูเขาไฟมีความ 'รุนแรง' มากที่สุด?", c: ["แมกมามีอุณหภูมิสูงมากและไหลได้เร็ว", "แมกมามีปริมาณแก๊สและซิลิกาสูงทำให้หนืดมาก", "แมกมามีปริมาณแก๊สต่ำและซิลิกาต่ำ"], a: 1, cat: "ภูเขาไฟระเบิด", desc: "ความหนืดที่สูงจากซิลิกาจะกักเก็บแก๊สไว้ ทำให้เกิดความดันสะสม เมื่อระเบิดจึงรุนแรงมาก" },
+            { id: "A25", q: "เหตุการณ์ใดมักเกิดขึ้นก่อนที่ 'คลื่นสึนามิ' จะเคลื่อนที่เข้าปะทะชายฝั่ง?", c: ["น้ำทะเลลดระดับลงอย่างรวดเร็ว", "ลมเปลี่ยนทิศทางอย่างฉับพลัน", "เกิดพายุฝนฟ้าคะนองรุนแรง"], a: 0, cat: "สึนามิ", desc: "การดึงน้ำทะเลกลับไปเป็นสัญญาณเตือนภัยตามธรรมชาติที่สำคัญก่อนที่ยอดคลื่นยักษ์จะพัดเข้ามา" },
+            { id: "A26", q: "เหตุการณ์แผ่นดินไหวและสึนามิ ปี 2547 ที่ส่งผลกระทบต่อไทย มีศูนย์กลางเกิดจากบริเวณใด?", c: ["เกาะฮอนชู ประเทศญี่ปุ่น", "เกาะสุมาตรา ประเทศอินโดนีเซีย", "หมู่เกาะมาเรียนา ฟิลิปปินส์"], a: 1, cat: "สึนามิ", desc: "เกิดจากรอยเลื่อนย้อนมุมต่ำบริเวณเขตมุดตัวนอกชายฝั่งเกาะสุมาตรา ประเทศอินโดนีเซีย" },
+            { id: "A27", q: "ข้อใดกล่าวถูกต้องเกี่ยวกับคลื่นสึนามิ?", c: ["คลื่นสึนามิจะเข้ากระทบชายฝั่งด้วยความเร็วที่เพิ่มขึ้นจากเดิม", "การระเบิดอย่างรุนแรงของภูเขาไฟใต้ทะเลเป็นสาเหตุหนึ่งของการเกิดสึนามิ", "คลื่นสึนามิในทะเลลึกจะมีลักษณะคลื่นสูงมากแต่เคลื่อนที่ช้า"], a: 1, cat: "สึนามิ", desc: "ในทะเลลึกสึนามิจะเคลื่อนที่เร็วมากแต่คลื่นเตี้ย เมื่อถึงฝั่งน้ำตื้นจะช้าลงแต่ความสูงคลื่นจะเพิ่มขึ้นมหาศาล" },
+            { id: "A28", q: "หากนักเรียนอยู่ในอาคารเมื่อเกิดแผ่นดินไหว นักเรียนควรทำอย่างไรเพื่อความปลอดภัย?", c: ["หยุดกระทำทุกอย่าง หมอบลงใต้โต๊ะที่แข็งแรง และหาที่ยึดจับ", "วิ่งออกจากอาคารลงบันไดทันที", "ยืนพิงกระจกหน้าต่างเพื่อดูสถานการณ์ภายนอก"], a: 0, cat: "ภัยพิบัติ", desc: "หลักการสากลคือ Drop (หมอบลง) Cover (หลบใต้โต๊ะ) Hold on (ยึดจับให้แน่น) ห้ามวิ่งขณะแผ่นดินกำลังไหว" },
+            { id: "A29", q: "บริเวณใดของโลกที่มักเกิดสึนามิมากที่สุด?", c: ["มหาสมุทรอินเดีย", "มหาสมุทรแอตแลนติก", "มหาสมุทรแปซิฟิก"], a: 2, cat: "สึนามิ", desc: "เนื่องจากล้อมรอบด้วยเขตวงแหวนแห่งไฟ ซึ่งมีการเกิดแผ่นดินไหวใต้ทะเลบ่อยครั้ง" },
+            { id: "A30", q: "หากชายฝั่งพบ 'เถ้าภูเขาไฟ' ทับถมกันหนาแน่น ภัยพิบัติต่อเนื่องใดที่ควรเฝ้าระวังมากที่สุดเมื่อเข้าสู่ฤดูฝน?", c: ["แผ่นดินไหวระดับตื้น", "ดินโคลนถล่ม", "คลื่นสึนามิ"], a: 1, cat: "ภัยพิบัติ", desc: "น้ำฝนจะชะล้างเถ้าภูเขาไฟที่เกาะตัวหลวมๆ ลงมาตามลาดเขา กลายเป็นดินโคลนถล่ม (Lahar)" },
+            { id: "A31", q: "[ภารกิจวิเคราะห์] แผ่นธรณีเคลื่อนที่แยกออกจากกันใต้มหาสมุทร ทำให้เกิดธรณีสัณฐานแบบใด?", c: ["เทือกเขากลางมหาสมุทร", "ร่องลึกก้นสมุทร", "ภูเขาไฟรูปโล่"], a: 0, cat: "วิเคราะห์: การแปรสัณฐาน", desc: "เมื่อแผ่นใต้มหาสมุทรแยกตัว แมกมาจะแทรกดันขึ้นมาเย็นตัวกลายเป็นเทือกเขายาวอยู่กลางมหาสมุทร" },
+            { id: "A32", q: "[ข่าวลือแผ่นดินไหว] ข่าวลือว่า 'ไทยจะเจอแผ่นดินไหวระดับ 9.0 จากการพลิกตัวของเปลือกโลก' ข้อใดอธิบายตามหลักวิทยาศาสตร์ได้ถูกต้อง?", c: ["มีโอกาส เพราะไทยตั้งอยู่บนรอยต่อแผ่นธรณีโดยตรง", "ไม่มีโอกาส เพราะไทยไม่ได้ตั้งอยู่บนแนวรอยต่อแผ่นธรณีหลัก", "มีโอกาส เพราะได้รับผลกระทบจากลมสุริยะ"], a: 1, cat: "วิเคราะห์: ข่าวลือภัยพิบัติ", desc: "ประเทศไทยตั้งอยู่ตอนกลางของแผ่นยูเรเชีย ไม่ได้อยู่บนรอยต่อแผ่นธรณีหลัก โอกาสเกิดแผ่นดินไหวรุนแรงระดับ 9 จึงเป็นไปไม่ได้" },
+            { id: "A33", q: "[ภารกิจวิเคราะห์] ทฤษฎีการแผ่ขยายพื้นมหาสมุทรของ แฮร์รี เฮส ช่วยแก้ข้อสงสัยใดใน 'ทฤษฎีทวีปเลื่อน' ได้สำเร็จ?", c: ["สาเหตุที่ทำให้ทวีปสามารถเคลื่อนที่และแยกออกจากกันได้", "อธิบายกระบวนการเกิดของสนามแม่เหล็กโลก", "ค้นพบว่าแก่นโลกชั้นในเป็นของแข็ง"], a: 0, cat: "วิเคราะห์: ทฤษฎีแผ่นธรณี", desc: "เวเกเนอร์ตอบไม่ได้ว่าแรงอะไรพาดินเลื่อน แต่เฮสอธิบายว่า แมกมาดันพื้นมหาสมุทรให้ขยายตัว ดันให้ทวีปแยกออกจากกัน" },
+            { id: "A34", q: "[เอาตัวรอดสึนามิ] หากเกิดแผ่นดินไหวรุนแรงขณะอยู่ริมทะเล และเห็น 'น้ำทะเลลดลงอย่างรวดเร็ว' สิ่งแรกที่ผู้นำกลุ่มควรทำคือ?", c: ["วิ่งไปเก็บปลาที่เกยตื้นมาเป็นเสบียง", "นำเรือเล็กออกไปหลบกลางทะเลลึก", "ตะโกนเตือนและรีบพาทีมวิ่งขึ้นที่สูงหรืออาคารแข็งแรงทันที"], a: 2, cat: "วิเคราะห์: การเอาตัวรอด", desc: "น้ำลดฮวบคือสัญญาณเตือนสึนามิระยะประชิด ต้องสละทรัพย์สินทุกอย่างและขึ้นที่สูงอย่างน้อย 15 เมตรให้เร็วที่สุด" },
+            { id: "A35", q: "[ภารกิจวิเคราะห์] พื้นที่ใดบนโลกมีความเสี่ยงแผ่นดินไหวสูงที่สุดตามหลักธรณีวิทยา?", c: ["บริเวณตอนกลางของแผ่นทวีป", "บริเวณแนวรอยต่อของแผ่นธรณี", "บริเวณที่ราบลุ่มแม่น้ำขนาดใหญ่"], a: 1, cat: "วิเคราะห์: ความเสี่ยงภัย", desc: "แนวรอยต่อแผ่นธรณี (Plate Boundaries) เป็นจุดที่มีการสะสมและปลดปล่อยพลังงานมากที่สุด" }
+        ];
+
+        // ==========================================
+        // GAME STATE
+        // ==========================================
+        const GameState = {
+            student: { studentId: "", firstName: "", lastName: "" }, attemptId: "",
+            score: 0, energy: 5, timer: 30, qIndex: 0, 
+            activeQuestions: [], startTime: 0, stats: { correct: 0, wrong: 0, timeUsed: 0 },
+            questionResults: [], isAnswering: false, timerInterval: null
+        };
+
+        // ==========================================
+        // GAME LOGIC
+        // ==========================================
+        const GameSys = {
+            toggleInputMode() { PoseTrackingSys.enableFallbackMode(); },
+            
+            startCountdown() {
+                if(AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+                document.getElementById('screen-menu').classList.add('hidden-sys');
+                document.getElementById('screen-countdown').classList.remove('hidden-sys');
+                
+                PoseTrackingSys.isActive = true;
+                
+                let count = 3;
+                const cdText = document.getElementById('countdown-text');
+                cdText.innerText = count; cdText.className = "text-9xl font-sci font-bold text-amber-400 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)] countdown-pop";
+                AudioSys.playCountdownBeep();
+
+                const cdInterval = setInterval(() => {
+                    count--;
+                    cdText.classList.remove('countdown-pop'); void cdText.offsetWidth; 
+                    
+                    if (count > 0) {
+                        cdText.innerText = count; cdText.classList.add('countdown-pop'); AudioSys.playCountdownBeep();
+                    } else if (count === 0) {
+                        cdText.innerText = "GO!"; cdText.className = "text-9xl font-sci font-bold text-green-400 drop-shadow-[0_0_40px_rgba(74,222,128,0.8)] countdown-go"; AudioSys.playCountdownGo();
+                    } else {
+                        clearInterval(cdInterval);
+                        document.getElementById('screen-countdown').classList.add('hidden-sys');
+                        this.actuallyStartGame();
+                    }
+                }, 1000);
+            },
+
+            actuallyStartGame() {
+                document.getElementById('screen-result').classList.add('hidden-sys'); document.getElementById('screen-game').classList.remove('hidden-sys');
+                if(!PoseTrackingSys.fallbackMode) document.getElementById('camera-preview').classList.remove('hidden-sys');
+
+                GameState.attemptId = "ASTRO-" + Date.now() + "-" + Math.floor(Math.random()*1000);
+                GameState.questionResults = [];
+                const shuffled = [...QuestionBank].sort(() => 0.5 - Math.random());
+                GameState.activeQuestions = shuffled.slice(0, 5); 
+                GameState.score = 0; GameState.energy = 5; GameState.qIndex = 0; GameState.stats = { correct: 0, wrong: 0, timeUsed: 0 }; GameState.startTime = Date.now();
+                this.updateUI(); this.loadQuestion();
+            },
+            showHowToPlay() { document.getElementById('modal-howto').classList.remove('hidden-sys'); }, hideHowToPlay() { document.getElementById('modal-howto').classList.add('hidden-sys'); },
+            returnToMenu() { 
+                this.clearTimer(); 
+                document.getElementById('screen-game').classList.add('hidden-sys'); 
+                document.getElementById('screen-result').classList.add('hidden-sys'); 
+                document.getElementById('screen-menu').classList.remove('hidden-sys'); 
+                PoseTrackingSys.isActive = false;
+            },
+            updateUI() {
+                document.getElementById('ui-score').innerText = GameState.score.toString();
+                let heartsHtml = ''; for(let i=0; i<5; i++) heartsHtml += i < GameState.energy ? '<i class="fa-solid fa-heart drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"></i>' : '<i class="fa-regular fa-heart text-slate-700"></i>';
+                document.getElementById('ui-energy').innerHTML = heartsHtml; document.getElementById('ui-qnum').innerText = GameState.qIndex + 1;
+            },
+            loadQuestion() {
+                if (GameState.qIndex >= 5 || GameState.energy <= 0) { this.endGame(); return; }
+                GameState.isAnswering = false; GameState.timer = 30; this.updateTimerUI();
+                const q = GameState.activeQuestions[GameState.qIndex];
+                document.getElementById('ui-category').innerText = q.cat; document.getElementById('ui-question').innerText = q.q;
+                
+                const dz = document.getElementById('question-container'); dz.classList.remove('success', 'error');
+                const overlay = document.getElementById('question-result-overlay'); overlay.classList.add('opacity-0'); overlay.classList.remove('opacity-100');
+                document.getElementById('question-result-desc').classList.add('hidden');
+                
+                const choicesDiv = document.getElementById('ui-choices'); choicesDiv.innerHTML = '';
+                const hexColors = ['#06b6d4', '#a855f7', '#f97316']; 
+
+                q.c.forEach((choice, idx) => {
+                    const hex = hexColors[idx];
+                    const btn = document.createElement('div'); btn.className = 'choice-card-v2 p-4 sm:p-6 flex flex-col items-center gap-2 sm:gap-4 h-24 sm:h-auto justify-center'; btn.style.setProperty('--card-color', hex); btn.dataset.index = idx; 
+                    btn.innerHTML = `<div class="circle-num">${idx + 1}</div><div class="font-semibold text-sm sm:text-base md:text-lg text-center leading-tight w-full px-2">${choice}</div>`;
+                    choicesDiv.appendChild(btn);
+                });
+                
+                this.startTimer();
+            },
+            startTimer() {
+                this.clearTimer(); const timerBox = document.getElementById('ui-timer-circle'); const timerText = document.getElementById('ui-timer');
+                timerBox.classList.remove('timer-warning'); timerText.classList.remove('timer-warning-text'); timerBox.style.setProperty('--timer-pct', '100%');
+
+                GameState.timerInterval = setInterval(() => { 
+                    GameState.timer--; this.updateTimerUI(); 
+                    if(GameState.timer <= 5 && GameState.timer > 0) { AudioSys.playTick(); timerBox.classList.add('timer-warning'); timerText.classList.add('timer-warning-text'); } 
+                    if(GameState.timer <= 0) this.handleTimeOut(); 
+                }, 1000);
+            },
+            clearTimer() { if(GameState.timerInterval) { clearInterval(GameState.timerInterval); GameState.timerInterval = null; } },
+            updateTimerUI() { document.getElementById('ui-timer').innerText = GameState.timer; const pct = (GameState.timer / 30) * 100; document.getElementById('ui-timer-circle').style.setProperty('--timer-pct', `${pct}%`); },
+            checkAnswer(selectedIndex, cardElement) {
+                if (GameState.isAnswering) return; GameState.isAnswering = true; this.clearTimer();
+                const q = GameState.activeQuestions[GameState.qIndex]; const isCorrect = (selectedIndex === q.a); const timeTaken = 30 - GameState.timer; GameState.stats.timeUsed += timeTaken;
+                const dz = document.getElementById('question-container'); const overlay = document.getElementById('question-result-overlay'); const desc = document.getElementById('question-result-desc');
+                overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); desc.innerText = q.desc; desc.classList.remove('hidden');
+                let pointsEarned = 0;
+                if (isCorrect) {
+                    AudioSys.playCorrect(); dz.classList.add('success'); pointsEarned = 10; let bonusText = ""; if (GameState.timer >= 20) { pointsEarned += 5; bonusText = " (+5 SPEED)"; }
+                    document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i>';
+                    document.getElementById('question-result-text').className = "text-3xl sm:text-4xl font-bold font-sci tracking-widest text-green-400"; document.getElementById('question-result-text').innerText = "CORRECT";
+                    document.getElementById('question-result-pts').className = "text-xl font-bold font-sci tracking-widest text-amber-400 mt-2"; document.getElementById('question-result-pts').innerText = `+${pointsEarned} POINTS${bonusText}`;
+                    GameState.score += pointsEarned; GameState.stats.correct++;
+                } else {
+                    AudioSys.playError(); dz.classList.add('error'); pointsEarned = -5;
+                    document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500"></i>';
+                    document.getElementById('question-result-text').className = "text-3xl sm:text-4xl font-bold font-sci tracking-widest text-red-500"; document.getElementById('question-result-text').innerText = "INCORRECT";
+                    document.getElementById('question-result-pts').className = "text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-5 POINTS / -1 ENERGY";
+                    GameState.score = Math.max(0, GameState.score - 5); GameState.energy--; GameState.stats.wrong++;
+                }
+                GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: q.c[selectedIndex], correctAnswer: q.c[q.a], result: isCorrect ? "correct" : "wrong", score: pointsEarned, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
+                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 4000);
+            },
+            handleTimeOut() {
+                GameState.isAnswering = true; this.clearTimer(); AudioSys.playError(); const q = GameState.activeQuestions[GameState.qIndex]; const timeTaken = 30; GameState.stats.timeUsed += timeTaken;
+                const dz = document.getElementById('question-container'); const overlay = document.getElementById('question-result-overlay'); const desc = document.getElementById('question-result-desc');
+                dz.classList.add('error'); overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); desc.innerText = q.desc; desc.classList.remove('hidden');
+                document.getElementById('question-result-icon').innerHTML = '<i class="fa-solid fa-clock text-red-500"></i>';
+                document.getElementById('question-result-text').className = "text-3xl sm:text-4xl font-bold font-sci tracking-widest text-red-500"; document.getElementById('question-result-text').innerText = "TIME OUT";
+                document.getElementById('question-result-pts').className = "text-xl font-bold font-sci tracking-widest text-red-400 mt-2"; document.getElementById('question-result-pts').innerText = "-1 ENERGY";
+                GameState.energy--; GameState.stats.wrong++;
+                GameState.questionResults.push({ questionId: q.id, category: q.cat, question: q.q, studentAnswer: "TIMEOUT", correctAnswer: q.c[q.a], result: "wrong", score: 0, timeUsed: timeTaken, questionOrder: GameState.qIndex + 1 });
+                this.updateUI(); setTimeout(() => { this.nextQuestion(); }, 4000);
+            },
+            nextQuestion() { GameState.qIndex++; if (GameState.energy <= 0 || GameState.qIndex >= 5) this.endGame(); else this.loadQuestion(); },
+            animateValue(obj, start, end, duration, suffix = "") {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    obj.innerText = Math.floor(progress * (end - start) + start) + suffix;
+                    if (progress < 1) window.requestAnimationFrame(step); else obj.innerText = end + suffix;
+                };
+                window.requestAnimationFrame(step);
+            },
+            endGame() {
+                this.clearTimer(); const totalTimeSec = GameState.stats.timeUsed; const min = Math.floor(totalTimeSec / 60).toString().padStart(2, '0'); const sec = (totalTimeSec % 60).toString().padStart(2, '0'); const completed = GameState.energy > 0;
+                
+                const hsKey = `astro_hs_${GameState.student.studentId}`;
+                let currentHs = parseInt(localStorage.getItem(hsKey) || 0);
+                if(GameState.score > currentHs) { localStorage.setItem(hsKey, GameState.score); document.getElementById('display-high-score').innerText = GameState.score; }
+
+                PoseTrackingSys.isActive = false;
+                
+                document.getElementById('screen-game').classList.add('hidden-sys'); 
+                const screenResult = document.getElementById('screen-result'); screenResult.classList.remove('hidden-sys'); 
+                document.getElementById('camera-preview').classList.add('hidden-sys'); document.getElementById('btn-playagain').disabled = true; document.getElementById('btn-playagain').classList.add('opacity-50', 'cursor-not-allowed');
+                
+                const resultPanel = screenResult.querySelector('.glass-panel'); resultPanel.classList.remove('animate-popup'); void resultPanel.offsetWidth; resultPanel.classList.add('animate-popup');
+
+                document.getElementById('result-header').innerText = completed ? "MISSION COMPLETE" : "GAME OVER"; document.getElementById('result-header').className = `text-4xl sm:text-5xl font-sci font-bold mb-2 tracking-widest ${completed ? 'text-amber-400 neon-text-primary' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`;
+                document.getElementById('result-time').innerText = `${min}:${sec}`; document.getElementById('result-correct').innerText = GameState.stats.correct; document.getElementById('result-wrong').innerText = GameState.stats.wrong;
+                const acc = Math.round((GameState.stats.correct / (GameState.stats.correct + GameState.stats.wrong)) * 100) || 0; 
+                
+                const rankIconEl = document.getElementById('result-icon'); const rankTextEl = document.getElementById('result-rank');
+                rankIconEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-slate-500"></i>'; rankIconEl.className = "text-6xl mb-4 text-slate-500 relative z-10";
+                rankTextEl.innerText = "CALCULATING..."; rankTextEl.className = "text-xl font-bold text-slate-400 font-sci relative z-10 animate-pulse";
+                
+                AudioSys.playScoreRoll();
+                this.animateValue(document.getElementById('result-score'), 0, GameState.score, 1500); this.animateValue(document.getElementById('result-acc'), 0, acc, 1500, "%");
+
+                let rank = "KEEP TRAINING", icon = '<i class="fa-solid fa-satellite"></i>', color = "text-slate-400";
+                if (completed) {
+                    if (acc >= 90) { rank = "MASTER ASTRONOMER"; icon = '<i class="fa-solid fa-globe"></i>'; color = "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"; }
+                    else if (acc >= 80) { rank = "SPACE EXPLORER"; icon = '<i class="fa-solid fa-shuttle-space"></i>'; color = "text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]"; }
+                    else if (acc >= 60) { rank = "STAR GAZER"; icon = '<i class="fa-solid fa-meteor"></i>'; color = "text-green-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]"; }
+                }
+
+                setTimeout(() => {
+                    AudioSys.playTriumph();
+                    rankIconEl.innerHTML = icon; rankIconEl.className = `text-6xl mb-4 ${color} relative z-10 animate-stamp`;
+                    rankTextEl.innerText = rank; rankTextEl.className = `text-2xl font-bold ${color} font-sci relative z-10 animate-stamp`;
+                }, 1500);
+                
+                const payload = { action: "saveAttempt", attemptId: GameState.attemptId, student: { studentId: GameState.student.studentId, firstName: GameState.student.firstName, lastName: GameState.student.lastName }, summary: { score: GameState.score, correct: GameState.stats.correct, wrong: GameState.stats.wrong, accuracy: acc, totalTime: totalTimeSec, questionCount: GameState.questionResults.length, deviceMode: PoseTrackingSys.fallbackMode ? "Touch/Mouse" : "Zone Jump (Camera)", missionLevel: "ASTRO EXPLORER - โลกและดาราศาสตร์ ม.4" }, questions: GameState.questionResults };
+                BackendSys.saveAttempt(payload);
+            }
+        };
+
+        window.onload = () => { 
+            GraphicsSys.init(); PoseTrackingSys.init(); GestureSys.init(); DragDropSys.init(); LoginSys.init(); 
+            
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    GraphicsSys.isGraphicsActive = false;
+                    PoseTrackingSys.isActive = false;
+                    if(AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
+                } else {
+                    GraphicsSys.isGraphicsActive = true;
+                    if(AudioSys.ctx && AudioSys.ctx.state === 'suspended' && !AudioSys.isMuted) AudioSys.ctx.resume();
+                    
+                    const isGameScreen = !document.getElementById('screen-game').classList.contains('hidden-sys');
+                    const isCountdown = !document.getElementById('screen-countdown').classList.contains('hidden-sys');
+                    if (isGameScreen || isCountdown) {
+                        PoseTrackingSys.isActive = true;
+                    }
+                }
+            });
+        };
+        window.GameSys = GameSys; window.AudioSys = AudioSys; window.LoginSys = LoginSys; window.PoseTrackingSys = PoseTrackingSys;
+    </script>
+</body>
+</html>
