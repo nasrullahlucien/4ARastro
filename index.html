@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ASTRO EXPLORER: ภารกิจสำรวจโลกและอวกาศ (Hybrid Edition)</title>
+    <title>ASTRO EXPLORER: ภารกิจสำรวจโลกและอวกาศ (Stage Edition)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,7 +30,6 @@
             color: #e2e8f0; 
             font-family: 'Kanit', sans-serif; 
             user-select: none; 
-            /* ปลดล็อก touch-action เพื่อให้มือถือไถจอได้ */
             width: 100vw;
             height: 100vh;
             height: 100dvh;
@@ -50,10 +49,8 @@
             padding-bottom: env(safe-area-inset-bottom);
         }
         
-        /* ปลดการบังคับหน้าจอแนวนอนทิ้งไป เพื่อให้มือถือใช้แนวตั้งได้ */
         #portrait-warning { display: none !important; }
 
-        /* การปรับ Responsive เฉพาะมือถือ (Mobile Specific) */
         @media (max-width: 768px) {
             .desktop-only { display: none !important; }
             .mobile-py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
@@ -66,7 +63,6 @@
             .choice-card-v2 { min-height: 70px; padding: 0.75rem !important; }
         }
 
-        /* Terminal Login */
         .terminal-panel { background: linear-gradient(135deg, rgba(5, 11, 20, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border: 2px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 30px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(59, 130, 246, 0.1); border-radius: 16px; position: relative; overflow: hidden; }
         .cyber-input { background: rgba(0, 0, 0, 0.4); border: none; border-bottom: 2px solid rgba(59, 130, 246, 0.5); color: var(--neon-primary); font-family: 'Orbitron', sans-serif; letter-spacing: 2px; border-radius: 0; outline: none; transition: all 0.3s; text-transform: uppercase; }
         .cyber-input::placeholder { color: rgba(148, 163, 184, 0.4); text-transform: none; font-family: 'Kanit', sans-serif; letter-spacing: normal;}
@@ -82,13 +78,11 @@
         .btn-loading { opacity: 0.8; pointer-events: none; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        /* Countdown Animations */
         .countdown-pop { animation: pop-in 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes pop-in { 0% { transform: scale(0.5); opacity: 0; } 40% { transform: scale(1.2); opacity: 1; } 60% { transform: scale(1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
         .countdown-go { animation: pop-go 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes pop-go { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; text-shadow: 0 0 40px var(--neon-primary); } 100% { transform: scale(2); opacity: 0; } }
 
-        /* Game UI */
         .circular-timer { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; border-radius: 50%; z-index: 50; background: conic-gradient(var(--neon-secondary) var(--timer-pct, 100%), rgba(255,255,255,0.05) 0); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), inset 0 0 10px rgba(0,0,0,0.5); border: 4px solid var(--bg-dark); transition: background 1s linear; }
         .circular-timer::before { content: ""; position: absolute; inset: 4px; background: rgba(15, 23, 42, 0.95); border-radius: 50%; box-shadow: inset 0 0 10px rgba(59,130,246,0.2); }
         .circular-timer-text { position: relative; z-index: 10; font-family: 'Orbitron', sans-serif; font-size: 1.75rem; font-weight: bold; color: white; }
@@ -136,7 +130,6 @@
 
     <div id="ui-layer" class="p-4 sm:p-8">
         
-        <!-- SCREEN 0: LOGIN -->
         <div id="screen-login" class="flex-1 flex flex-col items-center justify-center w-full min-h-[80vh] mobile-py-8">
             <div class="terminal-panel p-6 sm:p-12 text-center max-w-md w-full animate-fade-in-up mx-auto" id="login-terminal-card">
                 
@@ -179,9 +172,8 @@
             </div>
         </div>
 
-        <!-- SCREEN 1: MAIN MENU -->
         <div id="screen-menu" class="hidden-sys flex-1 flex flex-col items-center justify-center w-full min-h-[80vh] mobile-py-8">
-            <div class="glass-panel p-6 sm:p-10 text-center max-w-2xl w-full flex flex-col items-center mx-auto">
+            <div class="glass-panel p-6 sm:p-10 text-center max-w-4xl w-full flex flex-col items-center mx-auto">
                 
                 <div class="flex items-center justify-between bg-slate-900/80 border border-slate-700 px-4 py-2 sm:px-5 sm:py-3 rounded-xl mb-4 sm:mb-6 w-full shadow-inner">
                     <div class="flex items-center gap-3">
@@ -200,23 +192,51 @@
                 </div>
 
                 <h1 class="text-3xl sm:text-5xl font-sci font-bold mb-1 text-white neon-text-primary tracking-wider">ASTRO EXPLORER</h1>
-                <h2 class="text-sm sm:text-lg text-blue-300 mb-4 sm:mb-6 font-semibold">ภารกิจพิชิต โลก ดาราศาสตร์ และอวกาศ</h2>
+                <h2 class="text-sm sm:text-lg text-blue-300 mb-2 sm:mb-4 font-semibold">ภารกิจพิชิต โลก ดาราศาสตร์ และอวกาศ</h2>
                 
-                <div class="flex items-center justify-between mb-4 sm:mb-6 bg-slate-900/60 p-2 sm:p-3 rounded-lg border border-slate-700/50 w-full max-w-md mx-auto desktop-only">
+                <div class="flex items-center justify-between mb-4 bg-slate-900/60 p-2 sm:p-3 rounded-lg border border-slate-700/50 w-full max-w-md mx-auto desktop-only">
                     <div id="cam-status" class="text-[10px] sm:text-xs font-semibold text-slate-300 flex items-center gap-2">
                         <i class="fa-solid fa-spinner fa-spin text-amber-400"></i> Initializing Camera...
                     </div>
                 </div>
 
-                <div class="mb-6 p-3 bg-blue-900/30 rounded border border-blue-500/50 text-xs text-blue-200" id="device-hint">
+                <div class="mb-4 p-3 bg-blue-900/30 rounded border border-blue-500/50 text-xs text-blue-200" id="device-hint">
                     Loading Hint...
                 </div>
 
-                <button onclick="GameSys.startCountdown()" id="btn-start" class="px-8 py-3 sm:px-10 sm:py-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-full shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all text-sm sm:text-lg w-full max-w-md mx-auto disabled:opacity-50">
-                    <i class="fa-solid fa-rocket mr-2"></i> LAUNCH MISSION
-                </button>
+                <!-- Stage Selection UI -->
+                <div class="w-full text-left mb-2">
+                    <h3 class="text-slate-400 font-sci tracking-widest text-sm border-b border-slate-700 pb-1"><i class="fa-solid fa-map-location-dot mr-2"></i> SELECT MISSION STAGE</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-2 mb-6">
+                    <!-- Stage 1 -->
+                    <div onclick="GameSys.startCountdown(1)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.4)] group bg-slate-900/80">
+                        <div class="text-green-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-earth-americas"></i></div>
+                        <h3 class="text-white font-sci font-bold text-xl">STAGE 1</h3>
+                        <div class="text-green-300 text-xs mb-3 font-semibold">BASIC EXPLORATION</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">ทดสอบทฤษฎีโครงสร้างโลก และคลื่นไหวสะเทือนพื้นฐาน</div>
+                        <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-600"></i><i class="fa-regular fa-star text-slate-600"></i></div>
+                    </div>
+                    <!-- Stage 2 -->
+                    <div onclick="GameSys.startCountdown(2)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] group bg-slate-900/80">
+                        <div class="text-blue-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-layer-group"></i></div>
+                        <h3 class="text-white font-sci font-bold text-xl">STAGE 2</h3>
+                        <div class="text-blue-300 text-xs mb-3 font-semibold">ADVANCED TECTONICS</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">เจาะลึกการแปรสัณฐาน การเลื่อนตัว และรอยเลื่อนต่างๆ</div>
+                        <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-slate-600"></i></div>
+                    </div>
+                    <!-- Stage 3 -->
+                    <div onclick="GameSys.startCountdown(3)" class="glass-panel p-5 cursor-pointer hover:-translate-y-2 transition-all border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] group bg-slate-900/80">
+                        <div class="text-red-400 text-3xl mb-2 group-hover:scale-110 transition-transform"><i class="fa-solid fa-house-tsunami"></i></div>
+                        <h3 class="text-white font-sci font-bold text-xl">STAGE 3</h3>
+                        <div class="text-red-300 text-xs mb-3 font-semibold">DISASTER SURVIVAL</div>
+                        <div class="text-slate-400 text-[10px] mb-3 leading-tight">วิเคราะห์สถานการณ์ภัยพิบัติ แผ่นดินไหว และสึนามิ</div>
+                        <div class="text-amber-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    </div>
+                </div>
 
-                <div class="flex justify-center gap-4 sm:gap-6 mt-6 w-full text-xs sm:text-sm">
+                <div class="flex justify-center gap-4 sm:gap-6 w-full text-xs sm:text-sm">
                     <button onclick="AudioSys.toggleSound()" id="btn-sound" class="text-slate-400 hover:text-white transition flex items-center gap-2">
                         <i class="fa-solid fa-volume-high"></i> Sound
                     </button>
@@ -227,12 +247,10 @@
             </div>
         </div>
 
-        <!-- SCREEN: COUNTDOWN OVERLAY -->
         <div id="screen-countdown" class="hidden-sys fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
             <div id="countdown-text" class="text-8xl sm:text-9xl font-sci font-bold text-amber-400 drop-shadow-[0_0_30px_rgba(245,158,11,0.8)]">3</div>
         </div>
 
-        <!-- SCREEN 2: GAME UI -->
         <div id="screen-game" class="hidden-sys flex-1 flex flex-col w-full max-w-6xl mx-auto pb-8">
             <div class="glass-panel px-4 py-3 flex justify-between items-center mb-4 sm:mb-6 border-blue-500/30">
                 <div class="flex items-center gap-2 sm:gap-3">
@@ -247,17 +265,17 @@
 
                 <div class="flex items-center gap-3 sm:gap-8 bg-slate-900/80 px-3 sm:px-6 py-1 sm:py-2 rounded-full border border-slate-700 stats-container">
                     <div class="text-center">
-                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">ข้อ</div>
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold" id="ui-stage-indicator">STAGE 1</div>
                         <div class="font-bold text-white text-sm sm:text-lg"><span id="ui-qnum">1</span><span class="text-slate-500">/5</span></div>
                     </div>
                     <div class="w-px h-6 bg-slate-700 stats-divider"></div>
                     <div class="text-center">
-                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">คะแนน</div>
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">คะแนนรวม</div>
                         <div id="ui-score" class="font-bold text-amber-400 text-sm sm:text-xl font-sci">0</div>
                     </div>
                     <div class="w-px h-6 bg-slate-700 stats-divider"></div>
                     <div class="text-center">
-                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">พลังงาน</div>
+                        <div class="text-[8px] sm:text-[10px] text-slate-400 uppercase font-bold">พลังงานด่านนี้</div>
                         <div id="ui-energy" class="flex gap-0.5 sm:gap-1 text-red-500 text-xs sm:text-base mt-1"></div>
                     </div>
                 </div>
@@ -306,23 +324,22 @@
             </div>
         </div>
 
-        <!-- SCREEN 3: RESULT DASHBOARD -->
         <div id="screen-result" class="hidden-sys absolute inset-0 z-50 overflow-y-auto bg-slate-950/90 backdrop-blur-lg pt-10 pb-10">
             <div class="flex items-center justify-center min-h-full px-4">
                 <div class="glass-panel p-6 sm:p-12 max-w-3xl w-full text-center relative border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)] mx-auto">
                     <h1 class="text-2xl sm:text-5xl font-sci font-bold mb-2 text-amber-400 tracking-widest neon-text-primary" id="result-header">MISSION COMPLETE</h1>
-                    <div class="text-xs sm:text-xl text-slate-400 mb-6 font-semibold uppercase">SPACE EXPLORATION FINISHED</div>
+                    <div class="text-xs sm:text-xl text-slate-400 mb-6 font-semibold uppercase" id="result-subheader">STAGE 1 FINISHED</div>
 
                     <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
                         <div class="flex-1 bg-slate-900/80 p-4 sm:p-6 rounded-xl border border-slate-700 flex flex-col items-center justify-center">
                             <div id="result-icon" class="text-4xl sm:text-6xl mb-4 text-amber-400"><i class="fa-solid fa-user-astronaut"></i></div>
-                            <div class="text-[10px] sm:text-sm text-slate-400 uppercase tracking-widest font-bold">YOUR RANK</div>
-                            <div id="result-rank" class="text-lg sm:text-2xl font-bold text-blue-300 font-sci">MASTER ASTRONOMER</div>
+                            <div class="text-[10px] sm:text-sm text-slate-400 uppercase tracking-widest font-bold">STAGE RANK</div>
+                            <div id="result-rank" class="text-lg sm:text-2xl font-bold text-blue-300 font-sci">CLEARED</div>
                         </div>
 
                         <div class="flex-1 grid grid-cols-2 gap-2 sm:gap-4 text-left">
                             <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/80">
-                                <div class="text-slate-400 text-[8px] sm:text-[10px] uppercase font-bold">Total Score</div>
+                                <div class="text-slate-400 text-[8px] sm:text-[10px] uppercase font-bold">Stage Score</div>
                                 <div id="result-score" class="font-sci text-xl sm:text-3xl text-amber-400 font-bold">0</div>
                             </div>
                             <div class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/80">
@@ -345,12 +362,12 @@
                         <span id="backend-status-text" class="text-amber-300 font-sci">Transmitting Data...</span>
                     </div>
 
-                    <div class="flex justify-center gap-3">
-                        <button onclick="GameSys.returnToMenu()" class="px-4 py-2 sm:px-6 sm:py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-bold border border-slate-600 text-xs sm:text-base">
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        <button onclick="GameSys.returnToMenu()" id="btn-menu-action" class="px-4 py-2 sm:px-6 sm:py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-full font-bold border border-slate-600 text-xs sm:text-base">
                             <i class="fa-solid fa-house mr-2"></i> BASE CAMP
                         </button>
-                        <button id="btn-playagain" onclick="GameSys.startCountdown()" class="px-5 py-2 sm:px-8 sm:py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-full font-bold text-xs sm:text-base opacity-50 cursor-not-allowed" disabled>
-                            <i class="fa-solid fa-rotate-right mr-2"></i> PLAY AGAIN
+                        <button id="btn-primary-action" class="px-5 py-2 sm:px-8 sm:py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-full font-bold text-xs sm:text-base opacity-50 cursor-not-allowed" disabled>
+                            <i class="fa-solid fa-forward mr-2"></i> NEXT STAGE
                         </button>
                     </div>
                 </div>
@@ -359,9 +376,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // DEVICE SYSTEM (เช็คว่ามือถือหรือคอม)
-        // ==========================================
         const DeviceSys = {
             isMobile: false,
             init() {
@@ -375,9 +389,6 @@
             }
         };
 
-        // ==========================================
-        // LOGIN SYSTEM
-        // ==========================================
         const LoginSys = {
             init() {
                 const sId = localStorage.getItem('astro_studentid');
@@ -456,15 +467,12 @@
             }
         };
 
-        // ==========================================
-        // BACKEND SYSTEM
-        // ==========================================
         const BackendSys = {
             url: "https://script.google.com/macros/s/AKfycbybAb8IC5E8oF3tD-4f0Qc_lAbxdXXcWaoIhi0-ir34BePDtBvqK3Z7kg3aEm8_Rq6v/exec",
             async saveAttempt(payload) {
                 const statusIcon = document.querySelector('#backend-status i');
                 const statusText = document.getElementById('backend-status-text');
-                const btnPlayAgain = document.getElementById('btn-playagain');
+                const btnPrimaryAction = document.getElementById('btn-primary-action');
                 
                 try {
                     statusIcon.className = "fa-solid fa-satellite-dish animate-pulse text-amber-400"; statusText.innerText = "Transmitting Data..."; statusText.className = "text-amber-300";
@@ -474,13 +482,10 @@
                     else throw new Error(result ? result.message : "Unknown Error");
                 } catch (error) {
                     statusIcon.className = "fa-solid fa-triangle-exclamation text-red-400"; statusText.innerText = "Transmission Failed (Local Data Kept)"; statusText.className = "text-red-400";
-                } finally { btnPlayAgain.disabled = false; btnPlayAgain.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                } finally { btnPrimaryAction.disabled = false; btnPrimaryAction.classList.remove('opacity-50', 'cursor-not-allowed'); }
             }
         };
 
-        // ==========================================
-        // AUDIO SYSTEM
-        // ==========================================
         const AudioSys = {
             ctx: null, isMuted: false,
             init() { try { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); this.updateIcon(); } catch(e) {} },
@@ -501,9 +506,6 @@
             playTriumph() { if(this.isMuted || !this.ctx) return; this.playTone(523.25, 'sine', 0.1); setTimeout(() => this.playTone(659.25, 'sine', 0.1), 150); setTimeout(() => this.playTone(783.99, 'sine', 0.4), 300); }
         };
 
-        // ==========================================
-        // GRAPHICS SYSTEM (Three.js)
-        // ==========================================
         const GraphicsSys = {
             scene: null, camera: null, renderer: null, pivot: null, stars1: null, stars2: null, stars3: null, isGraphicsActive: true,
             init() {
@@ -551,9 +553,6 @@
             }
         };
 
-        // ==========================================
-        // POSE TRACKING (กล้อง AI) - ปิดการทำงานถ้าเป็น Mobile
-        // ==========================================
         const PoseTrackingSys = {
             pose: null, camera: null, isReady: false, baseShoulderY: null, isActive: false, lastProcessTime: 0, fallbackMode: false,
             async init() {
@@ -562,11 +561,7 @@
                 const canvasCtx = canvasElement.getContext('2d');
                 const statusEl = document.getElementById('cam-status');
 
-                // ถ้าเป็นมือถือ ไม่ต้องโหลดกล้องเลย
-                if (DeviceSys.isMobile) {
-                    this.enableFallbackMode();
-                    return;
-                }
+                if (DeviceSys.isMobile) { this.enableFallbackMode(); return; }
 
                 try {
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("Browser API not supported");
@@ -678,59 +673,62 @@
             }
         };
 
-        // ==========================================
-        // QUESTION BANK
-        // ==========================================
+        // Adding 'level' attribute to categorize difficulty (1: Easy, 2: Medium, 3: Hard)
         const QuestionBank = [
-            { id: "A01", q: "การศึกษาโครงสร้างภายในของโลกทางอ้อมนักวิทยาศาสตร์อาศัยข้อมูลจากสิ่งใดเป็นหลัก?", c: ["คลื่นไหวสะเทือน", "การระเบิดของภูเขาไฟ", "อุกกาบาตที่ตกมาบนโลก"], a: 0, cat: "โครงสร้างโลก", desc: "ความเร็วของคลื่นไหวสะเทือน (P-wave, S-wave) ที่เปลี่ยนไปตามตัวกลาง ช่วยบอกสถานะความหนาแน่นภายในโลกได้" },
-            { id: "A02", q: "คลื่นปฐมภูมิ (P-wave) มีลักษณะการเคลื่อนที่อย่างไร?", c: ["ผ่านได้ทุกสถานะ", "ผ่านได้เฉพาะของแข็ง", "เคลื่อนที่ตามแนวผิวโลก"], a: 0, cat: "คลื่นไหวสะเทือน", desc: "P-wave เป็นคลื่นตามยาว ทะลุผ่านได้ทั้งของแข็ง ของเหลว และแก๊ส" },
-            { id: "A03", q: "ธาตุองค์ประกอบทางเคมีที่พบมากที่สุดในบริเวณ 'แก่นโลก' คือข้อใด?", c: ["ซิลิกอนและแมกนีเซียม", "ออกซิเจนและคาร์บอน", "เหล็กและนิกเกิล"], a: 2, cat: "โครงสร้างโลก", desc: "แก่นโลก (Core) มีองค์ประกอบหลักเป็นโลหะหนัก คือ เหล็กและนิกเกิล" },
-            { id: "A04", q: "โครงสร้างโลกชั้นใดที่มีสถานะเป็นของเหลวหนืดและเป็นแหล่งกำเนิดแมกมา?", c: ["ชั้นเปลือกโลก", "ชั้นฐานธรณีภาค", "ชั้นแก่นโลกชั้นใน"], a: 1, cat: "โครงสร้างโลก", desc: "ฐานธรณีภาค (Asthenosphere) อยู่ในเนื้อโลกตอนบน มีลักษณะเป็นพลาสติกและเป็นแหล่งกำเนิดแมกมา" },
-            { id: "A05", q: "ข้อใดคือเกณฑ์สำคัญที่ใช้แบ่งโครงสร้างโลกออกเป็น ธรณีภาค ฐานธรณีภาค มีโซสเฟียร์ และแก่นโลก?", c: ["ความหนาแน่นของสสาร", "องค์ประกอบทางเคมี", "ความเร็วของคลื่นไหวสะเทือน"], a: 2, cat: "โครงสร้างโลก", desc: "การแบ่งชั้นทางกายภาพ (เช่น ธรณีภาค, ฐานธรณีภาค) ใช้การเปลี่ยนแปลงความเร็วของคลื่นไหวสะเทือนเป็นเกณฑ์หลัก" },
-            { id: "A06", q: "เพราะเหตุใดคลื่นทุติยภูมิ (S-wave) จึงไม่สามารถเดินทางผ่านแก่นโลกชั้นนอกได้?", c: ["อุณหภูมิของแก่นโลกสูงเกินไป", "สถานะของแก่นโลกชั้นนอกเป็นของเหลว", "แก่นโลกชั้นนอกมีความหนาแน่นต่ำ"], a: 1, cat: "คลื่นไหวสะเทือน", desc: "S-wave เป็นคลื่นตามขวาง ไม่สามารถเดินทางผ่านตัวกลางที่มีสถานะเป็น 'ของเหลว' ได้" },
-            { id: "A07", q: "หากใช้ความเร็วคลื่นไหวสะเทือนเป็นเกณฑ์ โลกจะแบ่งออกเป็นกี่ชั้น?", c: ["3 ชั้น", "4 ชั้น", "5 ชั้น"], a: 2, cat: "โครงสร้างโลก", desc: "แบ่งได้ 5 ชั้น ได้แก่ ธรณีภาค, ฐานธรณีภาค, มัชฌิมภาค, แก่นโลกชั้นนอก, แก่นโลกชั้นใน" },
-            { id: "A08", q: "หากสามารถขุดเจาะลงไปใต้ผิวโลกได้ลึก 12 กิโลเมตร ข้อมูลที่ได้จะเป็นข้อมูลของโครงสร้างโลกชั้นใด?", c: ["ชั้นฐานธรณีภาค", "ชั้นเปลือกโลก", "ชั้นเนื้อโลก"], a: 1, cat: "โครงสร้างโลก", desc: "ชั้นเปลือกโลก (Crust) มีความหนาเฉลี่ย 5-70 กิโลเมตร การเจาะ 12 กม. จึงยังคงอยู่ในเปลือกโลก" },
-            { id: "A09", q: "แก่นโลกชั้นนอก (Outer core) มีลักษณะสำคัญทางกายภาพอย่างไร?", c: ["เป็นของแข็ง อุณหภูมิต่ำ", "เป็นของเหลว อุณหภูมิสูง", "เป็นของแข็ง อุณหภูมิสูงมาก"], a: 1, cat: "โครงสร้างโลก", desc: "แก่นโลกชั้นนอกมีสถานะเป็นของเหลว ซึ่งการไหลวนของมันเป็นต้นกำเนิดสนามแม่เหล็กโลก" },
-            { id: "A10", q: "หากพบว่า 'เขตอับคลื่นปฐมภูมิ (Shadow zone)' มีขนาดแคบลง สันนิษฐานได้ว่าโครงสร้างโลกมีการเปลี่ยนแปลงอย่างไร?", c: ["เปลือกโลกมีความหนามากขึ้น", "แก่นโลกชั้นนอกมีขนาดเล็กลง", "เนื้อโลกมีอุณหภูมิลดลงฉับพลัน"], a: 1, cat: "คลื่นไหวสะเทือน", desc: "เขตอับคลื่นเกิดจากการหักเหเมื่อคลื่นผ่านแก่นโลกชั้นนอก (ของเหลว) หากเขตนี้แคบลง แสดงว่าสิ่งกีดขวาง (แก่นนอก) มีขนาดเล็กลง" },
-            { id: "A11", q: "ผู้ที่เสนอทฤษฎีทวีปเลื่อน (Theory of Continental Drift) คือใคร?", c: ["ชาร์ล ดาร์วิน", "อัลเฟรด เวเกเนอร์", "อัลเบิร์ต ไอน์สไตน์"], a: 1, cat: "การแปรสัณฐาน", desc: "อัลเฟรด เวเกเนอร์ นักอุตุนิยมวิทยาชาวเยอรมัน เสนอแนวคิดว่าแผ่นดินเคยติดกันเป็นมหาทวีปพันเจีย" },
-            { id: "A12", q: "เมื่อมหาทวีปพันเจีย แตกออกเป็น 2 ส่วน ทวีปทางตอนใต้มีชื่อเรียกว่าอะไร?", c: ["ลอเรเซีย", "ยูเรเชีย", "กอนด์วานา"], a: 2, cat: "การแปรสัณฐาน", desc: "มหาทวีปทางเหนือคือ ลอเรเซีย (Laurasia) และทางใต้คือ กอนด์วานา (Gondwana)" },
-            { id: "A13", q: "หลักฐานใด 'ไม่ใช่' หลักฐานที่เวเกเนอร์นำมาใช้สนับสนุนทฤษฎีทวีปเลื่อน?", c: ["การขยายตัวของเทือกสันเขากลางมหาสมุทร", "รูปร่างของชายฝั่งทวีปที่ต่อกันได้", "ซากดึกดำบรรพ์ของมีโซซอรัส"], a: 0, cat: "การแปรสัณฐาน", desc: "การขยายตัวของพื้นมหาสมุทร เป็นทฤษฎีที่เสนอโดย แฮร์รี เฮส ในยุคหลังเพื่อช่วยเติมเต็มทฤษฎีของเวเกเนอร์" },
-            { id: "A14", q: "ตามทฤษฎีการแผ่ขยายพื้นมหาสมุทร อายุของหินบะซอลต์บนพื้นมหาสมุทรมีลักษณะเป็นไปตามข้อใด?", c: ["หินที่อยู่ใกล้สันเขากลางมหาสมุทรจะมีอายุน้อยกว่าหินที่อยู่ไกลออกไป", "หินบนพื้นมหาสมุทรทุกบริเวณมีอายุเท่ากันทั้งหมด", "หินบริเวณร่องลึกก้นสมุทรจะมีอายุน้อยที่สุดเสมอ"], a: 0, cat: "การแปรสัณฐาน", desc: "แมกมาพุ่งขึ้นมาตรงกลางเทือกสันเขา ทำให้หินที่เกิดใหม่ (อายุน้อย) อยู่ตรงกลาง และดันหินเก่าออกไปด้านข้าง" },
-            { id: "A15", q: "รอยเลื่อนแซนแอนเดรียส (San Andreas Fault) เกิดจากการเคลื่อนที่ของแผ่นธรณีในลักษณะใด?", c: ["เคลื่อนที่แยกออกจากกัน", "เคลื่อนที่เฉือนกัน", "เคลื่อนที่มุดตัวลงไป"], a: 1, cat: "รอยเลื่อน", desc: "เป็นรอยเลื่อนตามแนวระดับ เกิดจากแผ่นธรณีแปซิฟิกและแผ่นอเมริกาเหนือเคลื่อนที่เฉือนกัน" },
-            { id: "A16", q: "เทือกเขาหิมาลัย เกิดจากกระบวนการทางธรณีวิทยาในข้อใด?", c: ["แผ่นอาระเบียและแผ่นแอฟริกาแยกตัว", "แผ่นอเมริกาเหนือและแปซิฟิกเฉือนกัน", "แผ่นยูเรเชียและแผ่นอินเดีย-ออสเตรเลียชนกัน"], a: 2, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากการชนกันของแผ่นทวีป (Continental-Continental collision) ทำให้แผ่นดินโก่งตัวสูงขึ้น" },
-            { id: "A17", q: "หุบเขาทรุดแอฟริกาตะวันออก (East African Rift) และทะเลแดง เกิดจากการเคลื่อนที่ของแผ่นธรณีลักษณะใด?", c: ["ชนกัน", "แยกจากกัน", "สวนกัน"], a: 1, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากแผ่นทวีปเคลื่อนที่แยกออกจากกัน ทำให้แผ่นดินทรุดตัวกลายเป็นหุบเขาและทะเลในที่สุด" },
-            { id: "A18", q: "หมู่เกาะญี่ปุ่น เป็นกลุ่มภูเขาไฟรูปโค้ง (Island arc) ที่เกิดจากสาเหตุใด?", c: ["แผ่นธรณีทวีปชนกับแผ่นธรณีทวีป", "แผ่นมหาสมุทรเคลื่อนที่แยกจากกัน", "แผ่นธรณีมหาสมุทรชนและมุดตัวลงใต้แผ่นธรณีอีกแผ่น"], a: 2, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากการมุดตัวของแผ่นมหาสมุทรแปซิฟิก เกิดการหลอมละลายแล้วผุดขึ้นเป็นแนวภูเขาไฟรูปโค้ง" },
-            { id: "A19", q: "การเคลื่อนที่แยกออกจากกันของ 'แผ่นธรณีทวีป' จะทำให้เกิดสิ่งใด?", c: ["ภูเขาไฟสูง", "ทะเลแดง", "ร่องลึกก้นสมุทร"], a: 1, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เมื่อแผ่นทวีปแยกตัว จะเกิดหุบเขาทรุด และเมื่อทรุดต่ำกว่าระดับน้ำทะเล น้ำจะเข้ามาขังจนกลายเป็นทะเล (เช่น ทะเลแดง)" },
-            { id: "A20", q: "บริเวณ 'เขตมุดตัว' (Subduction zone) ปลายของแผ่นธรณีที่มุดตัวลงไปในฐานธรณีภาคจะเกิดการเปลี่ยนแปลงอย่างไร?", c: ["หลอมเหลวกลายเป็นแมกมา", "แข็งตัวกลายเป็นชั้นหินแปร", "ดันตัวกลับขึ้นมาเป็นเทือกเขา"], a: 0, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เมื่อมุดตัวลงไปในชั้นที่ร้อนมาก แผ่นหินจะหลอมเหลวกลายเป็นแมกมาและดันตัวขึ้นมาปะทุบนผิวโลก" },
-            { id: "A21", q: "จุดที่อยู่ใต้ผิวโลกซึ่งเป็นตำแหน่งกำเนิดคลื่นไหวสะเทือน เรียกว่าอะไร?", c: ["จุดเหนือศูนย์เกิดแผ่นดินไหว", "ศูนย์เกิดแผ่นดินไหว", "รอยเลื่อน"], a: 1, cat: "แผ่นดินไหว", desc: "ศูนย์เกิดแผ่นดินไหว (Focus/Hypocenter) คือจุดกำเนิดใต้ดิน ส่วนจุดบนผิวดินเรียกว่าจุดเหนือศูนย์เกิด (Epicenter)" },
-            { id: "A22", q: "บริเวณ 'วงแหวนแห่งไฟ' (Ring of Fire) ซึ่งเกิดแผ่นดินไหวและภูเขาไฟระเบิดมากที่สุด ตั้งอยู่ล้อมรอบพื้นที่ใด?", c: ["มหาสมุทรแปซิฟิก", "มหาสมุทรอินเดีย", "มหาสมุทรแอตแลนติก"], a: 0, cat: "ภูเขาไฟแผ่นดินไหว", desc: "วงแหวนแห่งไฟล้อมรอบมหาสมุทรแปซิฟิก เป็นบริเวณเขตมุดตัวของแผ่นธรณีมากมาย" },
-            { id: "A23", q: "ข้อใดเป็นมาตราวัด 'ขนาด' (Magnitude) ของแผ่นดินไหว?", c: ["มาตราโมเมนต์", "มาตราเมอร์คัลลี", "มาตราอังกฤษ"], a: 0, cat: "แผ่นดินไหว", desc: "มาตราโมเมนต์ (Moment Magnitude) และริกเตอร์ วัดพลังงานที่ปล่อยออกมา ส่วนเมอร์คัลลีวัดความรุนแรง (ความเสียหาย)" },
-            { id: "A24", q: "ปัจจัยใดที่มีผลทำให้การระเบิดของภูเขาไฟมีความ 'รุนแรง' มากที่สุด?", c: ["แมกมามีอุณหภูมิสูงมากและไหลได้เร็ว", "แมกมามีปริมาณแก๊สและซิลิกาสูงทำให้หนืดมาก", "แมกมามีปริมาณแก๊สต่ำและซิลิกาต่ำ"], a: 1, cat: "ภูเขาไฟระเบิด", desc: "ความหนืดที่สูงจากซิลิกาจะกักเก็บแก๊สไว้ ทำให้เกิดความดันสะสม เมื่อระเบิดจึงรุนแรงมาก" },
-            { id: "A25", q: "เหตุการณ์ใดมักเกิดขึ้นก่อนที่ 'คลื่นสึนามิ' จะเคลื่อนที่เข้าปะทะชายฝั่ง?", c: ["น้ำทะเลลดระดับลงอย่างรวดเร็ว", "ลมเปลี่ยนทิศทางอย่างฉับพลัน", "เกิดพายุฝนฟ้าคะนองรุนแรง"], a: 0, cat: "สึนามิ", desc: "การดึงน้ำทะเลกลับไปเป็นสัญญาณเตือนภัยตามธรรมชาติที่สำคัญก่อนที่ยอดคลื่นยักษ์จะพัดเข้ามา" },
-            { id: "A26", q: "เหตุการณ์แผ่นดินไหวและสึนามิ ปี 2547 ที่ส่งผลกระทบต่อไทย มีศูนย์กลางเกิดจากบริเวณใด?", c: ["เกาะฮอนชู ประเทศญี่ปุ่น", "เกาะสุมาตรา ประเทศอินโดนีเซีย", "หมู่เกาะมาเรียนา ฟิลิปปินส์"], a: 1, cat: "สึนามิ", desc: "เกิดจากรอยเลื่อนย้อนมุมต่ำบริเวณเขตมุดตัวนอกชายฝั่งเกาะสุมาตรา ประเทศอินโดนีเซีย" },
-            { id: "A27", q: "ข้อใดกล่าวถูกต้องเกี่ยวกับคลื่นสึนามิ?", c: ["คลื่นสึนามิจะเข้ากระทบชายฝั่งด้วยความเร็วที่เพิ่มขึ้นจากเดิม", "การระเบิดอย่างรุนแรงของภูเขาไฟใต้ทะเลเป็นสาเหตุหนึ่งของการเกิดสึนามิ", "คลื่นสึนามิในทะเลลึกจะมีลักษณะคลื่นสูงมากแต่เคลื่อนที่ช้า"], a: 1, cat: "สึนามิ", desc: "ในทะเลลึกสึนามิจะเคลื่อนที่เร็วมากแต่คลื่นเตี้ย เมื่อถึงฝั่งน้ำตื้นจะช้าลงแต่ความสูงคลื่นจะเพิ่มขึ้นมหาศาล" },
-            { id: "A28", q: "หากนักเรียนอยู่ในอาคารเมื่อเกิดแผ่นดินไหว นักเรียนควรทำอย่างไรเพื่อความปลอดภัย?", c: ["หยุดกระทำทุกอย่าง หมอบลงใต้โต๊ะที่แข็งแรง และหาที่ยึดจับ", "วิ่งออกจากอาคารลงบันไดทันที", "ยืนพิงกระจกหน้าต่างเพื่อดูสถานการณ์ภายนอก"], a: 0, cat: "ภัยพิบัติ", desc: "หลักการสากลคือ Drop (หมอบลง) Cover (หลบใต้โต๊ะ) Hold on (ยึดจับให้แน่น) ห้ามวิ่งขณะแผ่นดินกำลังไหว" },
-            { id: "A29", q: "บริเวณใดของโลกที่มักเกิดสึนามิมากที่สุด?", c: ["มหาสมุทรอินเดีย", "มหาสมุทรแอตแลนติก", "มหาสมุทรแปซิฟิก"], a: 2, cat: "สึนามิ", desc: "เนื่องจากล้อมรอบด้วยเขตวงแหวนแห่งไฟ ซึ่งมีการเกิดแผ่นดินไหวใต้ทะเลบ่อยครั้ง" },
-            { id: "A30", q: "หากชายฝั่งพบ 'เถ้าภูเขาไฟ' ทับถมกันหนาแน่น ภัยพิบัติต่อเนื่องใดที่ควรเฝ้าระวังมากที่สุดเมื่อเข้าสู่ฤดูฝน?", c: ["แผ่นดินไหวระดับตื้น", "ดินโคลนถล่ม", "คลื่นสึนามิ"], a: 1, cat: "ภัยพิบัติ", desc: "น้ำฝนจะชะล้างเถ้าภูเขาไฟที่เกาะตัวหลวมๆ ลงมาตามลาดเขา กลายเป็นดินโคลนถล่ม (Lahar)" },
-            { id: "A31", q: "[ภารกิจวิเคราะห์] แผ่นธรณีเคลื่อนที่แยกออกจากกันใต้มหาสมุทร ทำให้เกิดธรณีสัณฐานแบบใด?", c: ["เทือกเขากลางมหาสมุทร", "ร่องลึกก้นสมุทร", "ภูเขาไฟรูปโล่"], a: 0, cat: "วิเคราะห์: การแปรสัณฐาน", desc: "เมื่อแผ่นใต้มหาสมุทรแยกตัว แมกมาจะแทรกดันขึ้นมาเย็นตัวกลายเป็นเทือกเขายาวอยู่กลางมหาสมุทร" },
-            { id: "A32", q: "[ข่าวลือแผ่นดินไหว] ข่าวลือว่า 'ไทยจะเจอแผ่นดินไหวระดับ 9.0 จากการพลิกตัวของเปลือกโลก' ข้อใดอธิบายตามหลักวิทยาศาสตร์ได้ถูกต้อง?", c: ["มีโอกาส เพราะไทยตั้งอยู่บนรอยต่อแผ่นธรณีโดยตรง", "ไม่มีโอกาส เพราะไทยไม่ได้ตั้งอยู่บนแนวรอยต่อแผ่นธรณีหลัก", "มีโอกาส เพราะได้รับผลกระทบจากลมสุริยะ"], a: 1, cat: "วิเคราะห์: ข่าวลือภัยพิบัติ", desc: "ประเทศไทยตั้งอยู่ตอนกลางของแผ่นยูเรเชีย ไม่ได้อยู่บนรอยต่อแผ่นธรณีหลัก โอกาสเกิดแผ่นดินไหวรุนแรงระดับ 9 จึงเป็นไปไม่ได้" },
-            { id: "A33", q: "[ภารกิจวิเคราะห์] ทฤษฎีการแผ่ขยายพื้นมหาสมุทรของ แฮร์รี เฮส ช่วยแก้ข้อสงสัยใดใน 'ทฤษฎีทวีปเลื่อน' ได้สำเร็จ?", c: ["สาเหตุที่ทำให้ทวีปสามารถเคลื่อนที่และแยกออกจากกันได้", "อธิบายกระบวนการเกิดของสนามแม่เหล็กโลก", "ค้นพบว่าแก่นโลกชั้นในเป็นของแข็ง"], a: 0, cat: "วิเคราะห์: ทฤษฎีแผ่นธรณี", desc: "เวเกเนอร์ตอบไม่ได้ว่าแรงอะไรพาดินเลื่อน แต่เฮสอธิบายว่า แมกมาดันพื้นมหาสมุทรให้ขยายตัว ดันให้ทวีปแยกออกจากกัน" },
-            { id: "A34", q: "[เอาตัวรอดสึนามิ] หากเกิดแผ่นดินไหวรุนแรงขณะอยู่ริมทะเล และเห็น 'น้ำทะเลลดลงอย่างรวดเร็ว' สิ่งแรกที่ผู้นำกลุ่มควรทำคือ?", c: ["วิ่งไปเก็บปลาที่เกยตื้นมาเป็นเสบียง", "นำเรือเล็กออกไปหลบกลางทะเลลึก", "ตะโกนเตือนและรีบพาทีมวิ่งขึ้นที่สูงหรืออาคารแข็งแรงทันที"], a: 2, cat: "วิเคราะห์: การเอาตัวรอด", desc: "น้ำลดฮวบคือสัญญาณเตือนสึนามิระยะประชิด ต้องสละทรัพย์สินทุกอย่างและขึ้นที่สูงอย่างน้อย 15 เมตรให้เร็วที่สุด" },
-            { id: "A35", q: "[ภารกิจวิเคราะห์] พื้นที่ใดบนโลกมีความเสี่ยงแผ่นดินไหวสูงที่สุดตามหลักธรณีวิทยา?", c: ["บริเวณตอนกลางของแผ่นทวีป", "บริเวณแนวรอยต่อของแผ่นธรณี", "บริเวณที่ราบลุ่มแม่น้ำขนาดใหญ่"], a: 1, cat: "วิเคราะห์: ความเสี่ยงภัย", desc: "แนวรอยต่อแผ่นธรณี (Plate Boundaries) เป็นจุดที่มีการสะสมและปลดปล่อยพลังงานมากที่สุด" }
+            // Level 1: Basic Exploration (12 Qs)
+            { id: "A01", level: 1, q: "การศึกษาโครงสร้างภายในของโลกทางอ้อมนักวิทยาศาสตร์อาศัยข้อมูลจากสิ่งใดเป็นหลัก?", c: ["คลื่นไหวสะเทือน", "การระเบิดของภูเขาไฟ", "อุกกาบาตที่ตกมาบนโลก"], a: 0, cat: "โครงสร้างโลก", desc: "ความเร็วของคลื่นไหวสะเทือน (P-wave, S-wave) ที่เปลี่ยนไปตามตัวกลาง ช่วยบอกสถานะความหนาแน่นภายในโลกได้" },
+            { id: "A02", level: 1, q: "คลื่นปฐมภูมิ (P-wave) มีลักษณะการเคลื่อนที่อย่างไร?", c: ["ผ่านได้ทุกสถานะ", "ผ่านได้เฉพาะของแข็ง", "เคลื่อนที่ตามแนวผิวโลก"], a: 0, cat: "คลื่นไหวสะเทือน", desc: "P-wave เป็นคลื่นตามยาว ทะลุผ่านได้ทั้งของแข็ง ของเหลว และแก๊ส" },
+            { id: "A03", level: 1, q: "ธาตุองค์ประกอบทางเคมีที่พบมากที่สุดในบริเวณ 'แก่นโลก' คือข้อใด?", c: ["ซิลิกอนและแมกนีเซียม", "ออกซิเจนและคาร์บอน", "เหล็กและนิกเกิล"], a: 2, cat: "โครงสร้างโลก", desc: "แก่นโลก (Core) มีองค์ประกอบหลักเป็นโลหะหนัก คือ เหล็กและนิกเกิล" },
+            { id: "A04", level: 1, q: "โครงสร้างโลกชั้นใดที่มีสถานะเป็นของเหลวหนืดและเป็นแหล่งกำเนิดแมกมา?", c: ["ชั้นเปลือกโลก", "ชั้นฐานธรณีภาค", "ชั้นแก่นโลกชั้นใน"], a: 1, cat: "โครงสร้างโลก", desc: "ฐานธรณีภาค (Asthenosphere) อยู่ในเนื้อโลกตอนบน มีลักษณะเป็นพลาสติกและเป็นแหล่งกำเนิดแมกมา" },
+            { id: "A05", level: 1, q: "ข้อใดคือเกณฑ์สำคัญที่ใช้แบ่งโครงสร้างโลกออกเป็น ธรณีภาค ฐานธรณีภาค มีโซสเฟียร์ และแก่นโลก?", c: ["ความหนาแน่นของสสาร", "องค์ประกอบทางเคมี", "ความเร็วของคลื่นไหวสะเทือน"], a: 2, cat: "โครงสร้างโลก", desc: "การแบ่งชั้นทางกายภาพ (เช่น ธรณีภาค, ฐานธรณีภาค) ใช้การเปลี่ยนแปลงความเร็วของคลื่นไหวสะเทือนเป็นเกณฑ์หลัก" },
+            { id: "A07", level: 1, q: "หากใช้ความเร็วคลื่นไหวสะเทือนเป็นเกณฑ์ โลกจะแบ่งออกเป็นกี่ชั้น?", c: ["3 ชั้น", "4 ชั้น", "5 ชั้น"], a: 2, cat: "โครงสร้างโลก", desc: "แบ่งได้ 5 ชั้น ได้แก่ ธรณีภาค, ฐานธรณีภาค, มัชฌิมภาค, แก่นโลกชั้นนอก, แก่นโลกชั้นใน" },
+            { id: "A08", level: 1, q: "หากสามารถขุดเจาะลงไปใต้ผิวโลกได้ลึก 12 กิโลเมตร ข้อมูลที่ได้จะเป็นข้อมูลของโครงสร้างโลกชั้นใด?", c: ["ชั้นฐานธรณีภาค", "ชั้นเปลือกโลก", "ชั้นเนื้อโลก"], a: 1, cat: "โครงสร้างโลก", desc: "ชั้นเปลือกโลก (Crust) มีความหนาเฉลี่ย 5-70 กิโลเมตร การเจาะ 12 กม. จึงยังคงอยู่ในเปลือกโลก" },
+            { id: "A11", level: 1, q: "ผู้ที่เสนอทฤษฎีทวีปเลื่อน (Theory of Continental Drift) คือใคร?", c: ["ชาร์ล ดาร์วิน", "อัลเฟรด เวเกเนอร์", "อัลเบิร์ต ไอน์สไตน์"], a: 1, cat: "การแปรสัณฐาน", desc: "อัลเฟรด เวเกเนอร์ นักอุตุนิยมวิทยาชาวเยอรมัน เสนอแนวคิดว่าแผ่นดินเคยติดกันเป็นมหาทวีปพันเจีย" },
+            { id: "A12", level: 1, q: "เมื่อมหาทวีปพันเจีย แตกออกเป็น 2 ส่วน ทวีปทางตอนใต้มีชื่อเรียกว่าอะไร?", c: ["ลอเรเซีย", "ยูเรเชีย", "กอนด์วานา"], a: 2, cat: "การแปรสัณฐาน", desc: "มหาทวีปทางเหนือคือ ลอเรเซีย (Laurasia) และทางใต้คือ กอนด์วานา (Gondwana)" },
+            { id: "A21", level: 1, q: "จุดที่อยู่ใต้ผิวโลกซึ่งเป็นตำแหน่งกำเนิดคลื่นไหวสะเทือน เรียกว่าอะไร?", c: ["จุดเหนือศูนย์เกิดแผ่นดินไหว", "ศูนย์เกิดแผ่นดินไหว", "รอยเลื่อน"], a: 1, cat: "แผ่นดินไหว", desc: "ศูนย์เกิดแผ่นดินไหว (Focus/Hypocenter) คือจุดกำเนิดใต้ดิน ส่วนจุดบนผิวดินเรียกว่าจุดเหนือศูนย์เกิด (Epicenter)" },
+            { id: "A22", level: 1, q: "บริเวณ 'วงแหวนแห่งไฟ' (Ring of Fire) ซึ่งเกิดแผ่นดินไหวและภูเขาไฟระเบิดมากที่สุด ตั้งอยู่ล้อมรอบพื้นที่ใด?", c: ["มหาสมุทรแปซิฟิก", "มหาสมุทรอินเดีย", "มหาสมุทรแอตแลนติก"], a: 0, cat: "ภูเขาไฟแผ่นดินไหว", desc: "วงแหวนแห่งไฟล้อมรอบมหาสมุทรแปซิฟิก เป็นบริเวณเขตมุดตัวของแผ่นธรณีมากมาย" },
+            { id: "A23", level: 1, q: "ข้อใดเป็นมาตราวัด 'ขนาด' (Magnitude) ของแผ่นดินไหว?", c: ["มาตราโมเมนต์", "มาตราเมอร์คัลลี", "มาตราอังกฤษ"], a: 0, cat: "แผ่นดินไหว", desc: "มาตราโมเมนต์ (Moment Magnitude) และริกเตอร์ วัดพลังงานที่ปล่อยออกมา ส่วนเมอร์คัลลีวัดความรุนแรง (ความเสียหาย)" },
+
+            // Level 2: Advanced Tectonics (12 Qs)
+            { id: "A06", level: 2, q: "เพราะเหตุใดคลื่นทุติยภูมิ (S-wave) จึงไม่สามารถเดินทางผ่านแก่นโลกชั้นนอกได้?", c: ["อุณหภูมิของแก่นโลกสูงเกินไป", "สถานะของแก่นโลกชั้นนอกเป็นของเหลว", "แก่นโลกชั้นนอกมีความหนาแน่นต่ำ"], a: 1, cat: "คลื่นไหวสะเทือน", desc: "S-wave เป็นคลื่นตามขวาง ไม่สามารถเดินทางผ่านตัวกลางที่มีสถานะเป็น 'ของเหลว' ได้" },
+            { id: "A09", level: 2, q: "แก่นโลกชั้นนอก (Outer core) มีลักษณะสำคัญทางกายภาพอย่างไร?", c: ["เป็นของแข็ง อุณหภูมิต่ำ", "เป็นของเหลว อุณหภูมิสูง", "เป็นของแข็ง อุณหภูมิสูงมาก"], a: 1, cat: "โครงสร้างโลก", desc: "แก่นโลกชั้นนอกมีสถานะเป็นของเหลว ซึ่งการไหลวนของมันเป็นต้นกำเนิดสนามแม่เหล็กโลก" },
+            { id: "A10", level: 2, q: "หากพบว่า 'เขตอับคลื่นปฐมภูมิ (Shadow zone)' มีขนาดแคบลง สันนิษฐานได้ว่าโครงสร้างโลกมีการเปลี่ยนแปลงอย่างไร?", c: ["เปลือกโลกมีความหนามากขึ้น", "แก่นโลกชั้นนอกมีขนาดเล็กลง", "เนื้อโลกมีอุณหภูมิลดลงฉับพลัน"], a: 1, cat: "คลื่นไหวสะเทือน", desc: "เขตอับคลื่นเกิดจากการหักเหเมื่อคลื่นผ่านแก่นโลกชั้นนอก (ของเหลว) หากเขตนี้แคบลง แสดงว่าสิ่งกีดขวาง (แก่นนอก) มีขนาดเล็กลง" },
+            { id: "A13", level: 2, q: "หลักฐานใด 'ไม่ใช่' หลักฐานที่เวเกเนอร์นำมาใช้สนับสนุนทฤษฎีทวีปเลื่อน?", c: ["การขยายตัวของเทือกสันเขากลางมหาสมุทร", "รูปร่างของชายฝั่งทวีปที่ต่อกันได้", "ซากดึกดำบรรพ์ของมีโซซอรัส"], a: 0, cat: "การแปรสัณฐาน", desc: "การขยายตัวของพื้นมหาสมุทร เป็นทฤษฎีที่เสนอโดย แฮร์รี เฮส ในยุคหลังเพื่อช่วยเติมเต็มทฤษฎีของเวเกเนอร์" },
+            { id: "A14", level: 2, q: "ตามทฤษฎีการแผ่ขยายพื้นมหาสมุทร อายุของหินบะซอลต์บนพื้นมหาสมุทรมีลักษณะเป็นไปตามข้อใด?", c: ["หินที่อยู่ใกล้สันเขากลางมหาสมุทรจะมีอายุน้อยกว่าหินที่อยู่ไกลออกไป", "หินบนพื้นมหาสมุทรทุกบริเวณมีอายุเท่ากันทั้งหมด", "หินบริเวณร่องลึกก้นสมุทรจะมีอายุน้อยที่สุดเสมอ"], a: 0, cat: "การแปรสัณฐาน", desc: "แมกมาพุ่งขึ้นมาตรงกลางเทือกสันเขา ทำให้หินที่เกิดใหม่ (อายุน้อย) อยู่ตรงกลาง และดันหินเก่าออกไปด้านข้าง" },
+            { id: "A15", level: 2, q: "รอยเลื่อนแซนแอนเดรียส (San Andreas Fault) เกิดจากการเคลื่อนที่ของแผ่นธรณีในลักษณะใด?", c: ["เคลื่อนที่แยกออกจากกัน", "เคลื่อนที่เฉือนกัน", "เคลื่อนที่มุดตัวลงไป"], a: 1, cat: "รอยเลื่อน", desc: "เป็นรอยเลื่อนตามแนวระดับ เกิดจากแผ่นธรณีแปซิฟิกและแผ่นอเมริกาเหนือเคลื่อนที่เฉือนกัน" },
+            { id: "A16", level: 2, q: "เทือกเขาหิมาลัย เกิดจากกระบวนการทางธรณีวิทยาในข้อใด?", c: ["แผ่นอาระเบียและแผ่นแอฟริกาแยกตัว", "แผ่นอเมริกาเหนือและแปซิฟิกเฉือนกัน", "แผ่นยูเรเชียและแผ่นอินเดีย-ออสเตรเลียชนกัน"], a: 2, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากการชนกันของแผ่นทวีป (Continental-Continental collision) ทำให้แผ่นดินโก่งตัวสูงขึ้น" },
+            { id: "A17", level: 2, q: "หุบเขาทรุดแอฟริกาตะวันออก (East African Rift) และทะเลแดง เกิดจากการเคลื่อนที่ของแผ่นธรณีลักษณะใด?", c: ["ชนกัน", "แยกจากกัน", "สวนกัน"], a: 1, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากแผ่นทวีปเคลื่อนที่แยกออกจากกัน ทำให้แผ่นดินทรุดตัวกลายเป็นหุบเขาและทะเลในที่สุด" },
+            { id: "A18", level: 2, q: "หมู่เกาะญี่ปุ่น เป็นกลุ่มภูเขาไฟรูปโค้ง (Island arc) ที่เกิดจากสาเหตุใด?", c: ["แผ่นธรณีทวีปชนกับแผ่นธรณีทวีป", "แผ่นมหาสมุทรเคลื่อนที่แยกจากกัน", "แผ่นธรณีมหาสมุทรชนและมุดตัวลงใต้แผ่นธรณีอีกแผ่น"], a: 2, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เกิดจากการมุดตัวของแผ่นมหาสมุทรแปซิฟิก เกิดการหลอมละลายแล้วผุดขึ้นเป็นแนวภูเขาไฟรูปโค้ง" },
+            { id: "A19", level: 2, q: "การเคลื่อนที่แยกออกจากกันของ 'แผ่นธรณีทวีป' จะทำให้เกิดสิ่งใด?", c: ["ภูเขาไฟสูง", "ทะเลแดง", "ร่องลึกก้นสมุทร"], a: 1, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เมื่อแผ่นทวีปแยกตัว จะเกิดหุบเขาทรุด และเมื่อทรุดต่ำกว่าระดับน้ำทะเล น้ำจะเข้ามาขังจนกลายเป็นทะเล (เช่น ทะเลแดง)" },
+            { id: "A20", level: 2, q: "บริเวณ 'เขตมุดตัว' (Subduction zone) ปลายของแผ่นธรณีที่มุดตัวลงไปในฐานธรณีภาคจะเกิดการเปลี่ยนแปลงอย่างไร?", c: ["หลอมเหลวกลายเป็นแมกมา", "แข็งตัวกลายเป็นชั้นหินแปร", "ดันตัวกลับขึ้นมาเป็นเทือกเขา"], a: 0, cat: "การเคลื่อนที่แผ่นธรณี", desc: "เมื่อมุดตัวลงไปในชั้นที่ร้อนมาก แผ่นหินจะหลอมเหลวกลายเป็นแมกมาและดันตัวขึ้นมาปะทุบนผิวโลก" },
+            { id: "A29", level: 2, q: "บริเวณใดของโลกที่มักเกิดสึนามิมากที่สุด?", c: ["มหาสมุทรอินเดีย", "มหาสมุทรแอตแลนติก", "มหาสมุทรแปซิฟิก"], a: 2, cat: "สึนามิ", desc: "เนื่องจากล้อมรอบด้วยเขตวงแหวนแห่งไฟ ซึ่งมีการเกิดแผ่นดินไหวใต้ทะเลบ่อยครั้ง" },
+
+            // Level 3: Disaster Survival & Analysis (11 Qs)
+            { id: "A24", level: 3, q: "ปัจจัยใดที่มีผลทำให้การระเบิดของภูเขาไฟมีความ 'รุนแรง' มากที่สุด?", c: ["แมกมามีอุณหภูมิสูงมากและไหลได้เร็ว", "แมกมามีปริมาณแก๊สและซิลิกาสูงทำให้หนืดมาก", "แมกมามีปริมาณแก๊สต่ำและซิลิกาต่ำ"], a: 1, cat: "ภูเขาไฟระเบิด", desc: "ความหนืดที่สูงจากซิลิกาจะกักเก็บแก๊สไว้ ทำให้เกิดความดันสะสม เมื่อระเบิดจึงรุนแรงมาก" },
+            { id: "A25", level: 3, q: "เหตุการณ์ใดมักเกิดขึ้นก่อนที่ 'คลื่นสึนามิ' จะเคลื่อนที่เข้าปะทะชายฝั่ง?", c: ["น้ำทะเลลดระดับลงอย่างรวดเร็ว", "ลมเปลี่ยนทิศทางอย่างฉับพลัน", "เกิดพายุฝนฟ้าคะนองรุนแรง"], a: 0, cat: "สึนามิ", desc: "การดึงน้ำทะเลกลับไปเป็นสัญญาณเตือนภัยตามธรรมชาติที่สำคัญก่อนที่ยอดคลื่นยักษ์จะพัดเข้ามา" },
+            { id: "A26", level: 3, q: "เหตุการณ์แผ่นดินไหวและสึนามิ ปี 2547 ที่ส่งผลกระทบต่อไทย มีศูนย์กลางเกิดจากบริเวณใด?", c: ["เกาะฮอนชู ประเทศญี่ปุ่น", "เกาะสุมาตรา ประเทศอินโดนีเซีย", "หมู่เกาะมาเรียนา ฟิลิปปินส์"], a: 1, cat: "สึนามิ", desc: "เกิดจากรอยเลื่อนย้อนมุมต่ำบริเวณเขตมุดตัวนอกชายฝั่งเกาะสุมาตรา ประเทศอินโดนีเซีย" },
+            { id: "A27", level: 3, q: "ข้อใดกล่าวถูกต้องเกี่ยวกับคลื่นสึนามิ?", c: ["คลื่นสึนามิจะเข้ากระทบชายฝั่งด้วยความเร็วที่เพิ่มขึ้นจากเดิม", "การระเบิดอย่างรุนแรงของภูเขาไฟใต้ทะเลเป็นสาเหตุหนึ่งของการเกิดสึนามิ", "คลื่นสึนามิในทะเลลึกจะมีลักษณะคลื่นสูงมากแต่เคลื่อนที่ช้า"], a: 1, cat: "สึนามิ", desc: "ในทะเลลึกสึนามิจะเคลื่อนที่เร็วมากแต่คลื่นเตี้ย เมื่อถึงฝั่งน้ำตื้นจะช้าลงแต่ความสูงคลื่นจะเพิ่มขึ้นมหาศาล" },
+            { id: "A28", level: 3, q: "หากนักเรียนอยู่ในอาคารเมื่อเกิดแผ่นดินไหว นักเรียนควรทำอย่างไรเพื่อความปลอดภัย?", c: ["หยุดกระทำทุกอย่าง หมอบลงใต้โต๊ะที่แข็งแรง และหาที่ยึดจับ", "วิ่งออกจากอาคารลงบันไดทันที", "ยืนพิงกระจกหน้าต่างเพื่อดูสถานการณ์ภายนอก"], a: 0, cat: "ภัยพิบัติ", desc: "หลักการสากลคือ Drop (หมอบลง) Cover (หลบใต้โต๊ะ) Hold on (ยึดจับให้แน่น) ห้ามวิ่งขณะแผ่นดินกำลังไหว" },
+            { id: "A30", level: 3, q: "หากชายฝั่งพบ 'เถ้าภูเขาไฟ' ทับถมกันหนาแน่น ภัยพิบัติต่อเนื่องใดที่ควรเฝ้าระวังมากที่สุดเมื่อเข้าสู่ฤดูฝน?", c: ["แผ่นดินไหวระดับตื้น", "ดินโคลนถล่ม", "คลื่นสึนามิ"], a: 1, cat: "ภัยพิบัติ", desc: "น้ำฝนจะชะล้างเถ้าภูเขาไฟที่เกาะตัวหลวมๆ ลงมาตามลาดเขา กลายเป็นดินโคลนถล่ม (Lahar)" },
+            { id: "A31", level: 3, q: "[ภารกิจวิเคราะห์] แผ่นธรณีเคลื่อนที่แยกออกจากกันใต้มหาสมุทร ทำให้เกิดธรณีสัณฐานแบบใด?", c: ["เทือกเขากลางมหาสมุทร", "ร่องลึกก้นสมุทร", "ภูเขาไฟรูปโล่"], a: 0, cat: "วิเคราะห์", desc: "เมื่อแผ่นใต้มหาสมุทรแยกตัว แมกมาจะแทรกดันขึ้นมาเย็นตัวกลายเป็นเทือกเขายาวอยู่กลางมหาสมุทร" },
+            { id: "A32", level: 3, q: "[ข่าวลือแผ่นดินไหว] ข่าวลือว่า 'ไทยจะเจอแผ่นดินไหวระดับ 9.0 จากการพลิกตัวของเปลือกโลก' ข้อใดอธิบายตามหลักวิทยาศาสตร์ได้ถูกต้อง?", c: ["มีโอกาส เพราะไทยตั้งอยู่บนรอยต่อแผ่นธรณีโดยตรง", "ไม่มีโอกาส เพราะไทยไม่ได้ตั้งอยู่บนแนวรอยต่อแผ่นธรณีหลัก", "มีโอกาส เพราะได้รับผลกระทบจากลมสุริยะ"], a: 1, cat: "วิเคราะห์", desc: "ประเทศไทยตั้งอยู่ตอนกลางของแผ่นยูเรเชีย ไม่ได้อยู่บนรอยต่อแผ่นธรณีหลัก โอกาสเกิดแผ่นดินไหวรุนแรงระดับ 9 จึงเป็นไปไม่ได้" },
+            { id: "A33", level: 3, q: "[ภารกิจวิเคราะห์] ทฤษฎีการแผ่ขยายพื้นมหาสมุทรของ แฮร์รี เฮส ช่วยแก้ข้อสงสัยใดใน 'ทฤษฎีทวีปเลื่อน' ได้สำเร็จ?", c: ["สาเหตุที่ทำให้ทวีปสามารถเคลื่อนที่และแยกออกจากกันได้", "อธิบายกระบวนการเกิดของสนามแม่เหล็กโลก", "ค้นพบว่าแก่นโลกชั้นในเป็นของแข็ง"], a: 0, cat: "วิเคราะห์", desc: "เวเกเนอร์ตอบไม่ได้ว่าแรงอะไรพาดินเลื่อน แต่เฮสอธิบายว่า แมกมาดันพื้นมหาสมุทรให้ขยายตัว ดันให้ทวีปแยกออกจากกัน" },
+            { id: "A34", level: 3, q: "[เอาตัวรอดสึนามิ] หากเกิดแผ่นดินไหวรุนแรงขณะอยู่ริมทะเล และเห็น 'น้ำทะเลลดลงอย่างรวดเร็ว' สิ่งแรกที่ผู้นำกลุ่มควรทำคือ?", c: ["วิ่งไปเก็บปลาที่เกยตื้นมาเป็นเสบียง", "นำเรือเล็กออกไปหลบกลางทะเลลึก", "ตะโกนเตือนและรีบพาทีมวิ่งขึ้นที่สูงหรืออาคารแข็งแรงทันที"], a: 2, cat: "วิเคราะห์", desc: "น้ำลดฮวบคือสัญญาณเตือนสึนามิระยะประชิด ต้องสละทรัพย์สินทุกอย่างและขึ้นที่สูงอย่างน้อย 15 เมตรให้เร็วที่สุด" },
+            { id: "A35", level: 3, q: "[ภารกิจวิเคราะห์] พื้นที่ใดบนโลกมีความเสี่ยงแผ่นดินไหวสูงที่สุดตามหลักธรณีวิทยา?", c: ["บริเวณตอนกลางของแผ่นทวีป", "บริเวณแนวรอยต่อของแผ่นธรณี", "บริเวณที่ราบลุ่มแม่น้ำขนาดใหญ่"], a: 1, cat: "วิเคราะห์", desc: "แนวรอยต่อแผ่นธรณี (Plate Boundaries) เป็นจุดที่มีการสะสมและปลดปล่อยพลังงานมากที่สุด" }
         ];
 
         const GameState = {
             student: { studentId: "", firstName: "", lastName: "" }, attemptId: "",
-            score: 0, energy: 5, timer: 30, qIndex: 0, 
+            currentStage: 1, score: 0, energy: 5, timer: 30, qIndex: 0, 
             activeQuestions: [], startTime: 0, stats: { correct: 0, wrong: 0, timeUsed: 0 },
             questionResults: [], isAnswering: false, timerInterval: null
         };
 
-        // ==========================================
-        // GAME LOGIC
-        // ==========================================
         const GameSys = {
-            startCountdown() {
+            startCountdown(stageNum) {
+                // Set the current stage
+                GameState.currentStage = stageNum || 1;
+
                 if(AudioSys.ctx && AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
                 document.getElementById('screen-menu').classList.add('hidden-sys');
                 document.getElementById('screen-countdown').classList.remove('hidden-sys');
@@ -760,11 +758,17 @@
                 document.getElementById('screen-result').classList.add('hidden-sys'); document.getElementById('screen-game').classList.remove('hidden-sys');
                 if(!PoseTrackingSys.fallbackMode) document.getElementById('camera-preview').classList.remove('hidden-sys');
 
-                GameState.attemptId = "ASTRO-" + Date.now() + "-" + Math.floor(Math.random()*1000);
+                GameState.attemptId = `ASTRO-S${GameState.currentStage}-` + Date.now() + "-" + Math.floor(Math.random()*1000);
                 GameState.questionResults = [];
-                const shuffled = [...QuestionBank].sort(() => 0.5 - Math.random());
+                
+                // Filter questions by level, then shuffle and pick 5
+                const pool = QuestionBank.filter(q => q.level === GameState.currentStage);
+                const shuffled = [...pool].sort(() => 0.5 - Math.random());
                 GameState.activeQuestions = shuffled.slice(0, 5); 
+                
+                // Reset stats for the stage
                 GameState.score = 0; GameState.energy = 5; GameState.qIndex = 0; GameState.stats = { correct: 0, wrong: 0, timeUsed: 0 }; GameState.startTime = Date.now();
+                
                 this.updateUI(); this.loadQuestion();
             },
             returnToMenu() { 
@@ -775,6 +779,7 @@
                 PoseTrackingSys.isActive = false;
             },
             updateUI() {
+                document.getElementById('ui-stage-indicator').innerText = `STAGE ${GameState.currentStage}`;
                 document.getElementById('ui-score').innerText = GameState.score.toString();
                 let heartsHtml = ''; for(let i=0; i<5; i++) heartsHtml += i < GameState.energy ? '<i class="fa-solid fa-heart drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"></i>' : '<i class="fa-regular fa-heart text-slate-700"></i>';
                 document.getElementById('ui-energy').innerHTML = heartsHtml; document.getElementById('ui-qnum').innerText = GameState.qIndex + 1;
@@ -783,7 +788,11 @@
                 if (GameState.qIndex >= 5 || GameState.energy <= 0) { this.endGame(); return; }
                 GameState.isAnswering = false; GameState.timer = 30; this.updateTimerUI();
                 const q = GameState.activeQuestions[GameState.qIndex];
-                document.getElementById('ui-category').innerText = q.cat; document.getElementById('ui-question').innerText = q.q;
+                
+                // Display Stage Name instead of Category if preferred, or keep category
+                const stageNames = ["BASIC EXPLORATION", "ADVANCED TECTONICS", "DISASTER SURVIVAL"];
+                document.getElementById('ui-category').innerText = `STAGE ${GameState.currentStage} : ${stageNames[GameState.currentStage-1]}`; 
+                document.getElementById('ui-question').innerText = q.q;
                 
                 const dz = document.getElementById('question-container'); dz.classList.remove('success', 'error');
                 const overlay = document.getElementById('question-result-overlay'); overlay.classList.add('opacity-0'); overlay.classList.remove('opacity-100');
@@ -795,7 +804,6 @@
                 q.c.forEach((choice, idx) => {
                     const hex = hexColors[idx];
                     const btn = document.createElement('div'); 
-                    // Dynamic Classes: Flex-row on mobile, Flex-col on desktop
                     btn.className = 'choice-card-v2 p-4 sm:p-6 flex flex-row sm:flex-col items-center gap-3 sm:gap-4 justify-start sm:justify-center w-full'; 
                     btn.style.setProperty('--card-color', hex); btn.dataset.index = idx; 
                     
@@ -864,19 +872,31 @@
             endGame() {
                 this.clearTimer(); const totalTimeSec = GameState.stats.timeUsed; const min = Math.floor(totalTimeSec / 60).toString().padStart(2, '0'); const sec = (totalTimeSec % 60).toString().padStart(2, '0'); const completed = GameState.energy > 0;
                 
+                // Fetch Global Highscore
                 const hsKey = `astro_hs_${GameState.student.studentId}`;
                 let currentHs = parseInt(localStorage.getItem(hsKey) || 0);
-                if(GameState.score > currentHs) { localStorage.setItem(hsKey, GameState.score); document.getElementById('display-high-score').innerText = GameState.score; }
+                // We add the stage score to a global total or track by stage. Let's track global.
+                if(GameState.score > 0) {
+                    let totalScore = currentHs + GameState.score;
+                    localStorage.setItem(hsKey, totalScore); 
+                    document.getElementById('display-high-score').innerText = totalScore;
+                }
 
                 PoseTrackingSys.isActive = false;
                 
                 document.getElementById('screen-game').classList.add('hidden-sys'); 
                 const screenResult = document.getElementById('screen-result'); screenResult.classList.remove('hidden-sys'); 
-                document.getElementById('camera-preview').classList.add('hidden-sys'); document.getElementById('btn-playagain').disabled = true; document.getElementById('btn-playagain').classList.add('opacity-50', 'cursor-not-allowed');
+                document.getElementById('camera-preview').classList.add('hidden-sys'); 
+                
+                const btnPrimary = document.getElementById('btn-primary-action');
+                btnPrimary.disabled = true; btnPrimary.classList.add('opacity-50', 'cursor-not-allowed');
                 
                 const resultPanel = screenResult.querySelector('.glass-panel'); resultPanel.classList.remove('animate-popup'); void resultPanel.offsetWidth; resultPanel.classList.add('animate-popup');
 
-                document.getElementById('result-header').innerText = completed ? "MISSION COMPLETE" : "GAME OVER"; document.getElementById('result-header').className = `text-2xl sm:text-5xl font-sci font-bold mb-1 sm:mb-2 tracking-widest ${completed ? 'text-amber-400 neon-text-primary' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`;
+                document.getElementById('result-header').innerText = completed ? "STAGE CLEARED!" : "STAGE FAILED"; 
+                document.getElementById('result-header').className = `text-2xl sm:text-5xl font-sci font-bold mb-2 tracking-widest ${completed ? 'text-amber-400 neon-text-primary' : 'text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`;
+                document.getElementById('result-subheader').innerText = `STAGE ${GameState.currentStage} FINISHED`;
+
                 document.getElementById('result-time').innerText = `${min}:${sec}`; document.getElementById('result-correct').innerText = GameState.stats.correct; document.getElementById('result-wrong').innerText = GameState.stats.wrong;
                 const acc = Math.round((GameState.stats.correct / (GameState.stats.correct + GameState.stats.wrong)) * 100) || 0; 
                 
@@ -887,20 +907,32 @@
                 AudioSys.playScoreRoll();
                 this.animateValue(document.getElementById('result-score'), 0, GameState.score, 1500); this.animateValue(document.getElementById('result-acc'), 0, acc, 1500, "%");
 
-                let rank = "KEEP TRAINING", icon = '<i class="fa-solid fa-satellite"></i>', color = "text-slate-400";
+                let rank = "FAILED", icon = '<i class="fa-solid fa-skull"></i>', color = "text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]";
                 if (completed) {
-                    if (acc >= 90) { rank = "MASTER ASTRONOMER"; icon = '<i class="fa-solid fa-globe"></i>'; color = "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"; }
-                    else if (acc >= 80) { rank = "SPACE EXPLORER"; icon = '<i class="fa-solid fa-shuttle-space"></i>'; color = "text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]"; }
-                    else if (acc >= 60) { rank = "STAR GAZER"; icon = '<i class="fa-solid fa-meteor"></i>'; color = "text-green-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]"; }
+                    if (acc >= 80) { rank = "EXCELLENT"; icon = '<i class="fa-solid fa-star"></i>'; color = "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]"; }
+                    else if (acc >= 60) { rank = "GOOD JOB"; icon = '<i class="fa-solid fa-thumbs-up"></i>'; color = "text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]"; }
+                    else { rank = "SURVIVOR"; icon = '<i class="fa-solid fa-shield-halved"></i>'; color = "text-green-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]"; }
+                }
+
+                // Setup Action Button
+                if (completed && GameState.currentStage < 3) {
+                    btnPrimary.innerHTML = '<i class="fa-solid fa-forward mr-2"></i> NEXT STAGE';
+                    btnPrimary.onclick = () => GameSys.startCountdown(GameState.currentStage + 1);
+                } else if (completed && GameState.currentStage === 3) {
+                    btnPrimary.innerHTML = '<i class="fa-solid fa-flag-checkered mr-2"></i> FINISH ALL';
+                    btnPrimary.onclick = () => GameSys.returnToMenu();
+                } else {
+                    btnPrimary.innerHTML = '<i class="fa-solid fa-rotate-right mr-2"></i> RETRY STAGE';
+                    btnPrimary.onclick = () => GameSys.startCountdown(GameState.currentStage);
                 }
 
                 setTimeout(() => {
-                    AudioSys.playTriumph();
+                    if(completed) AudioSys.playTriumph(); else AudioSys.playError();
                     rankIconEl.innerHTML = icon; rankIconEl.className = `text-4xl sm:text-6xl mb-2 sm:mb-4 ${color} relative z-10 animate-stamp`;
                     rankTextEl.innerText = rank; rankTextEl.className = `text-lg sm:text-2xl font-bold ${color} font-sci relative z-10 animate-stamp`;
                 }, 1500);
                 
-                const payload = { action: "saveAttempt", attemptId: GameState.attemptId, student: { studentId: GameState.student.studentId, firstName: GameState.student.firstName, lastName: GameState.student.lastName }, summary: { score: GameState.score, correct: GameState.stats.correct, wrong: GameState.stats.wrong, accuracy: acc, totalTime: totalTimeSec, questionCount: GameState.questionResults.length, deviceMode: PoseTrackingSys.fallbackMode ? "Touch/Mouse" : "Zone Jump (Camera)", missionLevel: "ASTRO EXPLORER - โลกและดาราศาสตร์ ม.4" }, questions: GameState.questionResults };
+                const payload = { action: "saveAttempt", attemptId: GameState.attemptId, student: { studentId: GameState.student.studentId, firstName: GameState.student.firstName, lastName: GameState.student.lastName }, summary: { score: GameState.score, correct: GameState.stats.correct, wrong: GameState.stats.wrong, accuracy: acc, totalTime: totalTimeSec, questionCount: GameState.questionResults.length, deviceMode: PoseTrackingSys.fallbackMode ? "Touch/Mouse" : "Zone Jump (Camera)", missionLevel: "ASTRO EXPLORER - STAGE " + GameState.currentStage }, questions: GameState.questionResults };
                 BackendSys.saveAttempt(payload);
             }
         };
